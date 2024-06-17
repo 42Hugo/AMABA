@@ -80,20 +80,26 @@ static uint8_t *domain1_pd = NULL;
 #define AnaOutSlavePos 0, 2
 #define AnaInSlavePos  0, 3
 
+#define Beckhoff_EK1100 0x00000002, 0x044c2c52
 #define Beckhoff_EL2024 0x00000002, 0x07e83052
 #define Beckhoff_EL4104 0x00000002, 0x10083052
 #define Beckhoff_EL3164 0x00000002, 0x0c5c3052
 
 
 // offsets for PDO entries
-static unsigned int off_ana_in_value;
-static unsigned int off_ana_out;
-static unsigned int off_dig_out;
+static unsigned int off_ana_in1;
+static unsigned int off_ana_in2;
+static unsigned int off_ana_out1;
+static unsigned int off_ana_out2;
+static unsigned int off_dig_out1;
+//static unsigned int off_dig_out2;
 
 const static ec_pdo_entry_reg_t domain1_regs[] = {
-    {AnaInSlavePos,  Beckhoff_EL3164, 0x6000, 1, &off_ana_in_value},
-    {AnaOutSlavePos, Beckhoff_EL4104, 0x7000, 1, &off_ana_out},
-    {DigOutSlavePos, Beckhoff_EL2024, 0x7000, 1, &off_dig_out},
+    {AnaInSlavePos,  Beckhoff_EL3164, 0x6000, 1, &off_ana_in1},
+    {AnaInSlavePos,  Beckhoff_EL3164, 0x6010, 1, &off_ana_in2},
+    {AnaOutSlavePos, Beckhoff_EL4104, 0x7000, 1, &off_ana_out1},
+    {AnaOutSlavePos, Beckhoff_EL4104, 0x7010, 1, &off_ana_out2},
+    {DigOutSlavePos, Beckhoff_EL2024, 0x7000, 1, &off_dig_out1},
     {}
 };
 
@@ -282,6 +288,14 @@ void cyclic_task()
     // check process data state
     check_domain1_state();
 
+    //analog write
+    EC_WRITE_U16(domain1_pd + off_ana_out1, 100);
+    EC_WRITE_U16(domain1_pd + off_ana_out2, 1000);
+
+    //digital write
+    //EC_Write_U8(domain1_pd + off_dig_out1, 0x01 );//je suppose que ça ouvre le 1
+    //EC_Write_U8(domain1_pd + off_dig_out1, 0x03 );// le 2 et le 1 ouvert
+    
     if (counter) {
         counter--;
     }
@@ -291,6 +305,11 @@ void cyclic_task()
         // calculate new process data
         blink = !blink;
 
+        //Analog read
+        uint16_t ana_in_value1 = EC_READ_U16(domain1_pd + off_ana_in1);
+        uint16_t ana_in_value2 = EC_READ_U16(domain1_pd + off_ana_in2);
+        printf("Input1 : %u and Input 2: %u\n", ana_in_value1, ana_in_value2);
+
         // check for master state (optional)
         check_master_state();
 
@@ -298,24 +317,19 @@ void cyclic_task()
         check_slave_config_states();
     }
 
-    if (0){
     // read process data
     /*printf("AnaIn: state %u value %u\n",
             EC_READ_U8(domain1_pd + off_ana_in_status),
             EC_READ_U16(domain1_pd + off_ana_in_value));*/
-    printf("Hello world!")
-    }
 
-    if (1){
     // write process data
-    /*EC_WRITE_U8(domain1_pd + off_dig_out, blink ? 0x06 : 0x09);
-    }*/
+    /*EC_WRITE_U8(domain1_pd + off_dig_out, blink ? 0x06 : 0x09);*/
+
 
     // send process data
     ecrt_domain_queue(domain1);
     ecrt_master_send(master);
 }
-
 /****************************************************************************/
 
 void stack_prefault(void)
@@ -327,7 +341,7 @@ void stack_prefault(void)
 
 /****************************************************************************/
 
-int main(int argc, char **argv)
+int main()
 {
     ec_slave_config_t *sc;
     struct timespec wakeup_time;
@@ -344,35 +358,35 @@ int main(int argc, char **argv)
     }
 
     if (!(sc_ana_in = ecrt_master_slave_config(
-                    master, AnaInSlavePos, Beckhoff_EL3102))) {
+                    master, AnaInSlavePos, Beckhoff_EL3164))) {
         fprintf(stderr, "Failed to get slave configuration.\n");
         return -1;
     }
 
     printf("Configuring PDOs...\n");
-    if (ecrt_slave_config_pdos(sc_ana_in, EC_END, el3102_syncs)) {
+    if (ecrt_slave_config_pdos(sc_ana_in, EC_END, slave_3_syncs)) {
         fprintf(stderr, "Failed to configure PDOs.\n");
         return -1;
     }
 
     if (!(sc = ecrt_master_slave_config(
-                    master, AnaOutSlavePos, Beckhoff_EL4102))) {
+                    master, AnaOutSlavePos, Beckhoff_EL4104))) {
         fprintf(stderr, "Failed to get slave configuration.\n");
         return -1;
     }
 
-    if (ecrt_slave_config_pdos(sc, EC_END, el4102_syncs)) {
+    if (ecrt_slave_config_pdos(sc, EC_END, slave_2_syncs)) {
         fprintf(stderr, "Failed to configure PDOs.\n");
         return -1;
     }
 
     if (!(sc = ecrt_master_slave_config(
-                    master, DigOutSlavePos, Beckhoff_EL2032))) {
+                    master, DigOutSlavePos, Beckhoff_EL2024))) {
         fprintf(stderr, "Failed to get slave configuration.\n");
         return -1;
     }
 
-    if (ecrt_slave_config_pdos(sc, EC_END, el2004_syncs)) {
+    if (ecrt_slave_config_pdos(sc, EC_END, slave_1_syncs)) {
         fprintf(stderr, "Failed to configure PDOs.\n");
         return -1;
     }
