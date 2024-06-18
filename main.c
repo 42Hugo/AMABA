@@ -92,19 +92,27 @@ static unsigned int off_ana_in2;
 static unsigned int off_ana_out1;
 static unsigned int off_ana_out2;
 static unsigned int off_dig_out1;
-//static unsigned int off_dig_out2;
+static unsigned int off_dig_out2;
 
 const static ec_pdo_entry_reg_t domain1_regs[] = {
-    {AnaInSlavePos,  Beckhoff_EL3164, 0x6000, 1, &off_ana_in1},
-    {AnaInSlavePos,  Beckhoff_EL3164, 0x6010, 1, &off_ana_in2},
-    {AnaOutSlavePos, Beckhoff_EL4104, 0x7000, 1, &off_ana_out1},
-    {AnaOutSlavePos, Beckhoff_EL4104, 0x7010, 1, &off_ana_out2},
-    {DigOutSlavePos, Beckhoff_EL2024, 0x7000, 1, &off_dig_out1},
+    {AnaInSlavePos,  Beckhoff_EL3164, 0x6000, 0x11, &off_ana_in1},
+    {AnaInSlavePos,  Beckhoff_EL3164, 0x6010, 0x11, &off_ana_in2},
+    {AnaOutSlavePos, Beckhoff_EL4104, 0x7000, 0x01, &off_ana_out1},
+    {AnaOutSlavePos, Beckhoff_EL4104, 0x7010, 0x01, &off_ana_out2},
+    {DigOutSlavePos, Beckhoff_EL2024, 0x7000, 0x01, &off_dig_out1},
+    {DigOutSlavePos, Beckhoff_EL2024, 0x7010, 0x01, &off_dig_out2},
     {}
 };
 
 static unsigned int counter = 0;
 static unsigned int blink = 0;
+static unsigned int dig1=0;
+static unsigned int dig2=0;
+static unsigned int ana1=0;
+static unsigned int ana2=0;
+static unsigned int state= 1;//starts at 1 because the code is running
+//to test independently for the moment
+static char message[] ="1002010";//message from the GUI to ethercat bit 1: on/off; bit2,3: dig out; bit4,5 and 6,7: pressure in bar^-1
 
 /*****************************************************************************/
 
@@ -219,6 +227,17 @@ static ec_sync_info_t slave_1_syncs[] = {
 
 /*****************************************************************************/
 
+void decodeMessage(mes)
+{
+    state=int(mes[0]);
+    dig1=int(mes[1]);
+    dig2=int(mes[2]);
+    ana1 = (mes[3] - '0') * 10 + (mes[4] - '0');
+    ana1 = (ana1 / 20) * 65535;
+    ana2 = (mes[5] - '0') * 10 + (mes[6] - '0');
+    ana2 = (ana2 / 20) * 65535;
+}
+
 void check_domain1_state(void)
 {
     ec_domain_state_t ds;
@@ -288,13 +307,44 @@ void cyclic_task()
     // check process data state
     check_domain1_state();
 
-    //analog write
-    EC_WRITE_U16(domain1_pd + off_ana_out1, 100);
-    EC_WRITE_U16(domain1_pd + off_ana_out2, 1000);
+    //check updates from the GUI
+    decodeMessage(message);//here the IPC will have to be added
 
-    //digital write
-    //EC_Write_U8(domain1_pd + off_dig_out1, 0x01 );//je suppose que ça ouvre le 1
-    //EC_Write_U8(domain1_pd + off_dig_out1, 0x03 );// le 2 et le 1 ouvert
+    //check if the state if 0 to kill program
+    if (!state){
+        //maybe turning off everythin properly first
+        
+        //digital write
+        EC_Write_U8(domain1_pd + off_dig_out1, 0x00);
+        EC_Write_U8(domain1_pd + off_dig_out2, 0x00 );
+
+        //analog write // a slow decrease might be needed 
+        EC_WRITE_U16(domain1_pd + off_ana_out1, 0);
+        EC_WRITE_U16(domain1_pd + off_ana_out2, 0);
+
+        return -1;//exit the program
+    }
+
+    // Read the current value at the address
+    uint16_t current_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);
+    uint16_t current_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);
+    uint8_t current_dig1 = EC_READ_U8(domain1_pd + off_dig_out1);
+    uint8_t current_dig1 = EC_READ_U8(domain1_pd + off_dig_out2);
+
+    // Compare with the new value and write if needed
+    if (current_ana1 != ana1) {
+        EC_WRITE_U16(domain1_pd + off_ana_out1, ana1);
+    }
+    if (current_ana2 != ana2) {
+        EC_WRITE_U16(domain1_pd + off_ana_out2, ana2);
+    }
+    if (current_dig1 != dig1) {
+        EC_WRITE_U16(domain1_pd + off_dig_out1, dig1);
+    }
+    if (current_dig2 != dig2) {
+        EC_WRITE_U16(domain1_pd + off_dig_out1, dig2);
+    }
+
     
     if (counter) {
         counter--;
@@ -304,6 +354,15 @@ void cyclic_task()
 
         // calculate new process data
         blink = !blink;
+
+        //check sent signals
+        uint16_t check_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);
+        uint16_t check_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);
+        uint8_t check_dig1 = EC_READ_U8(domain1_pd + off_dig_out1);
+        uint8_t check_dig2 = EC_READ_U8(domain1_pd + off_dig_out2);
+        printf("Check Analog Output 1: %u and Analog Output 2: %u\n", check_ana1, check_ana2);
+        printf("Check Digital Output 1: %u and Digital Output 2: %u\n", check_dig1, check_dig2);
+
 
         //Analog read
         uint16_t ana_in_value1 = EC_READ_U16(domain1_pd + off_ana_in1);
@@ -317,13 +376,6 @@ void cyclic_task()
         check_slave_config_states();
     }
 
-    // read process data
-    /*printf("AnaIn: state %u value %u\n",
-            EC_READ_U8(domain1_pd + off_ana_in_status),
-            EC_READ_U16(domain1_pd + off_ana_in_value));*/
-
-    // write process data
-    /*EC_WRITE_U8(domain1_pd + off_dig_out, blink ? 0x06 : 0x09);*/
 
 
     // send process data
