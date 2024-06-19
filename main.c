@@ -46,7 +46,7 @@
 /****************************************************************************/
 
 /** Task period in ns. */
-#define PERIOD_NS   (1000000)
+#define PERIOD_NS   (100000000)
 
 #define MAX_SAFE_STACK (8 * 1024) /* The maximum stack size which is
                                      guranteed safe to access without
@@ -92,7 +92,7 @@ static unsigned int off_ana_in2;
 static unsigned int off_ana_out1;
 static unsigned int off_ana_out2;
 static unsigned int off_dig_out1;
-static unsigned int off_dig_out2;
+//static unsigned int off_dig_out2;
 
 const static ec_pdo_entry_reg_t domain1_regs[] = {
     {AnaInSlavePos,  Beckhoff_EL3164, 0x6000, 0x11, &off_ana_in1},
@@ -100,7 +100,7 @@ const static ec_pdo_entry_reg_t domain1_regs[] = {
     {AnaOutSlavePos, Beckhoff_EL4104, 0x7000, 0x01, &off_ana_out1},
     {AnaOutSlavePos, Beckhoff_EL4104, 0x7010, 0x01, &off_ana_out2},
     {DigOutSlavePos, Beckhoff_EL2024, 0x7000, 0x01, &off_dig_out1},
-    {DigOutSlavePos, Beckhoff_EL2024, 0x7010, 0x01, &off_dig_out2},
+    //{DigOutSlavePos, Beckhoff_EL2024, 0x7010, 0x01, &off_dig_out2},
     {}
 };
 
@@ -108,11 +108,12 @@ static unsigned int counter = 0;
 static unsigned int blink = 0;
 static unsigned int dig1=0;
 static unsigned int dig2=0;
-static unsigned int ana1=0;
-static unsigned int ana2=0;
+static float ana1=0.0f;
+static float ana2=0.0f;
 static unsigned int state= 1;//starts at 1 because the code is running
+static unsigned int loop= 1;//loop until we get a state =0
 //to test independently for the moment
-static char message[] ="1002010";//message from the GUI to ethercat bit 1: on/off; bit2,3: dig out; bit4,5 and 6,7: pressure in bar^-1
+static char message[] ="1001008";//message from the GUI to ethercat bit 1: on/off; bit2,3: dig out; bit4,5 and 6,7: pressure in bar^-1
 
 /*****************************************************************************/
 
@@ -227,15 +228,15 @@ static ec_sync_info_t slave_1_syncs[] = {
 
 /*****************************************************************************/
 
-void decodeMessage(mes)
+void decodeMessage(const char *mes)
 {
-    state=int(mes[0]);
-    dig1=int(mes[1]);
-    dig2=int(mes[2]);
+    state=mes[0]-'0';
+    dig1=mes[1]-'0';
+    dig2=mes[2]-'0';
     ana1 = (mes[3] - '0') * 10 + (mes[4] - '0');
-    ana1 = (ana1 / 20) * 65535;
+    ana1 = (ana1 / 20.0f) * 65535.0f;
     ana2 = (mes[5] - '0') * 10 + (mes[6] - '0');
-    ana2 = (ana2 / 20) * 65535;
+    ana2 = (ana2 / 20.0f) * 65535.0f;
 }
 
 void check_domain1_state(void)
@@ -315,21 +316,25 @@ void cyclic_task()
         //maybe turning off everythin properly first
         
         //digital write
-        EC_Write_U8(domain1_pd + off_dig_out1, 0x00);
-        EC_Write_U8(domain1_pd + off_dig_out2, 0x00 );
+        EC_WRITE_U8(domain1_pd + off_dig_out1, 0x00);
+        //EC_WRITE_U8(domain1_pd + off_dig_out2, 0x00 );
 
         //analog write // a slow decrease might be needed 
         EC_WRITE_U16(domain1_pd + off_ana_out1, 0);
         EC_WRITE_U16(domain1_pd + off_ana_out2, 0);
+        printf("Terminating cycle...");
 
-        return -1;//exit the program
+        loop=0;//will add a flag here to terminate the while loop in the main
+
+        return;//exit the program
     }
 
     // Read the current value at the address
     uint16_t current_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);
     uint16_t current_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);
-    uint8_t current_dig1 = EC_READ_U8(domain1_pd + off_dig_out1);
-    uint8_t current_dig1 = EC_READ_U8(domain1_pd + off_dig_out2);
+    uint8_t current_dig = EC_READ_U8(domain1_pd + off_dig_out1);
+    uint8_t current_dig1 = current_dig%2;
+    uint8_t current_dig2 = (current_dig- current_dig1)%2;
 
     // Compare with the new value and write if needed
     if (current_ana1 != ana1) {
@@ -339,10 +344,23 @@ void cyclic_task()
         EC_WRITE_U16(domain1_pd + off_ana_out2, ana2);
     }
     if (current_dig1 != dig1) {
-        EC_WRITE_U16(domain1_pd + off_dig_out1, dig1);
+        if(dig1){
+            current_dig=current_dig | 0x01;
+        }
+        else{
+            current_dig=current_dig ^ 0x01;
+        }
+        EC_WRITE_U8(domain1_pd + off_dig_out1, current_dig);
     }
+    
     if (current_dig2 != dig2) {
-        EC_WRITE_U16(domain1_pd + off_dig_out1, dig2);
+        if(dig2){
+            current_dig=current_dig | 0x02;
+        }
+        else{
+            current_dig=current_dig ^ 0x02;
+        }
+        EC_WRITE_U8(domain1_pd + off_dig_out1, current_dig);
     }
 
     
@@ -359,7 +377,7 @@ void cyclic_task()
         uint16_t check_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);
         uint16_t check_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);
         uint8_t check_dig1 = EC_READ_U8(domain1_pd + off_dig_out1);
-        uint8_t check_dig2 = EC_READ_U8(domain1_pd + off_dig_out2);
+        uint8_t check_dig2 = EC_READ_U8(domain1_pd + off_dig_out1);
         printf("Check Analog Output 1: %u and Analog Output 2: %u\n", check_ana1, check_ana2);
         printf("Check Digital Output 1: %u and Digital Output 2: %u\n", check_dig1, check_dig2);
 
@@ -488,7 +506,7 @@ int main()
     wakeup_time.tv_sec += 1; /* start in future */
     wakeup_time.tv_nsec = 0;
 
-    while (1) {
+    while (loop) {
         ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
                 &wakeup_time, NULL);
         if (ret) {
