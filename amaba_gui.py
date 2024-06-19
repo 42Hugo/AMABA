@@ -8,6 +8,9 @@ from printrun.printcore import printcore
 from printrun import gcoder
 import time
 
+#for the socket com with C
+import socket
+import select
 
 class printer():
     flag=0
@@ -15,6 +18,31 @@ class printer():
     p=None
     current_response=""
     # Callback function to handle responses from the printer
+
+    def send_with_socket(client_socket, mes):
+        client_socket.sendall(mes.encode('utf-8'))
+
+        # Receive response
+        response = client_socket.recv(1024)
+        print(f"Received from server: {response.decode('utf-8')}")
+
+        if mes == "0":
+            return False
+        return True
+
+    def start_socket():
+        host = 'localhost'
+        port = 12345
+
+        # Create a socket object
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Connect to the server
+        client_socket.connect((host, port))
+
+        print("Connected to the server")
+        return client_socket
+
     def response_callback(line):
         current_response = line
         #print(f"Received: {line}")
@@ -22,23 +50,21 @@ class printer():
             #print(f"Received: {line}")
             printer.flag+=1
 
-    def update(gui_instance):
+    def update(gui_instance, client, state):
+        print("starting the update loop")
         if printer.depose==0:
             print("turn off the buse")
-            pneumatic.st_Ato=0
-            pneumatic.st_cart=0
+            #pneumatic.st_Ato=0
+            #pneumatic.st_cart=0
             pneumatic.st_point=0
-            #####GPIO here to turn off the vans
         else: 
             print("turn on the buse")
             if pneumatic.automatic==0:
-                ###send to gpio pressure based on GUI
                 pneumatic.st_Ato=1
                 pneumatic.st_cart=1
                 pneumatic.st_point=1
-                #####GPIO here to turn on the vans
             else:
-                pneumatic.c_ato=0.48#get the F of the g code to mplement here
+                pneumatic.c_ato=0.4#get the F of the g code to mplement here
                 pneumatic.c_cart=1.3
                 ##send new pressure based on GUI
 
@@ -46,8 +72,17 @@ class printer():
                 pneumatic.st_cart=1
                 pneumatic.st_point=1
                 #####GPIO here to turn on the vans
-        print("according to printer: st_ato=")
-        print(pneumatic.st_Ato)
+        if not state:
+            pneumatic.st_Ato=0
+            pneumatic.st_cart=0
+            pneumatic.c_ato=0
+            pneumatic.c_cart=0
+        
+        presAto= int(pneumatic.c_ato*10)
+        presCart= int(pneumatic.c_cart*10)
+        mes = str(state) + str(pneumatic.st_point)+str(pneumatic.st_cart)+  str(pneumatic.st_Ato) +str(presAto) + str(presCart)
+        printer.send_with_socket(client, mes)
+        print(f"Mes sent in socket: {mes}")
         amabaGUI.update(gui_instance)
 
 
@@ -58,6 +93,11 @@ class printer():
         layer=""
         count=0
         #printer.update(gui_instance)
+
+        #start com with c
+        client=printer.start_socket()
+        print("starting the socket")
+
         for data in gcode_lines:
             modified_line = data.split(';')[0]
 
@@ -92,9 +132,10 @@ class printer():
                     print("ON")#on dirait c'est inversé c'est par ce que c'est la future couche dont on a l'info dépose
                 else:
                     print("OFF")
-                printer.p.send_now(layer)
+                printer.update(gui_instance, client, 1) #send to c
+                printer.p.send_now(layer)  #send to printer
                 #p.send_now("M400")
-                #print(f"sending: {layer}")
+                print(f"sending: {layer}")
                 
                 while printer.flag!=(count+1):
                     pass
@@ -106,28 +147,28 @@ class printer():
                 layer = layer + "\n" + modified_line
                 new_layer=0
                 printer.flag=0
-                printer.update(gui_instance)
+                
 
         layer= layer + "\n" + "M400" 
         if printer.depose==0:
             print("OFF")#ici c'est la couche actuel dont on a la dépose
         else:
             print("ON")  
+        printer.update(gui_instance, client, 0)#ligne rajouter sans test à verifier si pose un problème, on envoie 2 fois le message ?
         printer.p.send_now(layer)
-        #print(f"sending: {layer}")
-        #print(count)
         while printer.flag!=(count+1):
             pass
-        #print("finished")
 
-        # Close the connection
+        # Close the connections
         printer.p.disconnect()
+        # Close the socket
+        client.close()  
         return
 
 
     def connect(path):
         # Start communication with the printer
-        printer.p = printcore('COM3', 115200)
+        printer.p = printcore('/dev/ttyACM0', 115200)
         printer.flag = 0
         # Set the response callback
         printer.p.loud = True
