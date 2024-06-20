@@ -11,6 +11,8 @@ import time
 #for the socket com with C
 import socket
 import select
+import subprocess
+
 
 class printer():
     flag=0
@@ -19,12 +21,23 @@ class printer():
     current_response=""
     # Callback function to handle responses from the printer
 
+    def start_c_program():
+        # Start the C program as a subprocess
+        process = subprocess.Popen(['/home/amaba/Desktop/dev_ws/ighEthercat/ethercat/examples/user/ec_user_example'],  stdin=subprocess.PIPE)
+        time.sleep(5)#there needs to be a little delay to allow the c subprocess to start
+        return process
+
+    def stop_c_program(process):
+        # Terminate the C program
+        process.terminate()
+        process.wait()
+
     def send_with_socket(client_socket, mes):
         client_socket.sendall(mes.encode('utf-8'))
 
         # Receive response
         response = client_socket.recv(1024)
-        print(f"Received from server: {response.decode('utf-8')}")
+        #print(f"Received from server: {response.decode('utf-8')}")
 
         if mes == "0":
             return False
@@ -40,7 +53,7 @@ class printer():
         # Connect to the server
         client_socket.connect((host, port))
 
-        print("Connected to the server")
+        #print("Connected to the server")
         return client_socket
 
     def response_callback(line):
@@ -51,14 +64,14 @@ class printer():
             printer.flag+=1
 
     def update(gui_instance, client, state):
-        print("starting the update loop")
+        #print("starting the update loop")
         if printer.depose==0:
-            print("turn off the buse")
+            #print("turn off the buse")
             #pneumatic.st_Ato=0
             #pneumatic.st_cart=0
             pneumatic.st_point=0
         else: 
-            print("turn on the buse")
+            #print("turn on the buse")
             if pneumatic.automatic==0:
                 pneumatic.st_Ato=1
                 pneumatic.st_cart=1
@@ -79,14 +92,24 @@ class printer():
             pneumatic.c_cart=0
         
         presAto= int(pneumatic.c_ato*10)
+        if (presAto<10):
+            presAtostr="0"+str(presAto)
+        else:
+            presAtostr=str(presAto)
         presCart= int(pneumatic.c_cart*10)
-        mes = str(state) + str(pneumatic.st_point)+str(pneumatic.st_cart)+  str(pneumatic.st_Ato) +str(presAto) + str(presCart)
+        if (presCart<10):
+            presCartstr="0"+str(presCart)
+        else:
+            presCartstr=str(presCart)
+        mes = str(state) + str(pneumatic.st_cart)+  str(pneumatic.st_Ato) + str(pneumatic.st_point) + presCartstr +presAtostr 
         printer.send_with_socket(client, mes)
-        print(f"Mes sent in socket: {mes}")
+        #print(f"Mes sent in socket: {mes}")
         amabaGUI.update(gui_instance)
 
 
     def get_line_and_modify(gcode_lines,gui_instance):
+        #start c process
+        c_program_process = printer.start_c_program()
         printer.depose = 0
         new_layer = 0
         printer.flag=0
@@ -96,7 +119,7 @@ class printer():
 
         #start com with c
         client=printer.start_socket()
-        print("starting the socket")
+        #print("starting the socket")
 
         for data in gcode_lines:
             modified_line = data.split(';')[0]
@@ -128,14 +151,13 @@ class printer():
                 
             else:
                 layer= layer + "\n" + "M400"
-                if printer.depose==0:
-                    print("ON")#on dirait c'est inversé c'est par ce que c'est la future couche dont on a l'info dépose
-                else:
-                    print("OFF")
-                printer.update(gui_instance, client, 1) #send to c
+                #if printer.depose==0:
+                    #print("ON")#on dirait c'est inversé c'est par ce que c'est la future couche dont on a l'info dépose
+                #else:
+                    #print("OFF")
                 printer.p.send_now(layer)  #send to printer
                 #p.send_now("M400")
-                print(f"sending: {layer}")
+                #print(f"sending: {layer}")
                 
                 while printer.flag!=(count+1):
                     pass
@@ -147,13 +169,14 @@ class printer():
                 layer = layer + "\n" + modified_line
                 new_layer=0
                 printer.flag=0
+                printer.update(gui_instance, client, 1) #send to c
                 
 
         layer= layer + "\n" + "M400" 
-        if printer.depose==0:
-            print("OFF")#ici c'est la couche actuel dont on a la dépose
-        else:
-            print("ON")  
+        #if printer.depose==0:
+            #print("OFF")#ici c'est la couche actuel dont on a la dépose
+        #else:
+            #print("ON")  
         printer.update(gui_instance, client, 0)#ligne rajouter sans test à verifier si pose un problème, on envoie 2 fois le message ?
         printer.p.send_now(layer)
         while printer.flag!=(count+1):
@@ -163,6 +186,8 @@ class printer():
         printer.p.disconnect()
         # Close the socket
         client.close()  
+        #end c process
+        printer.stop_c_program(c_program_process)
         return
 
 
@@ -438,8 +463,8 @@ class amabaGUI:
     
     def gcodeF(self):
         pneumatic.filePath = fd.askopenfilename()
-        print("chosen file:")
-        print(pneumatic.filePath)
+        #print("chosen file:")
+        #print(pneumatic.filePath)
 
         #self.update() #it should update continuously afterwards
         #connect ot printer and start com
@@ -489,7 +514,7 @@ class amabaGUI:
         self.show_consiA.configure(text=pneumatic.c_ato)
     
     def update(self):
-        print("we re updating the GUI")
+        #print("we re updating the GUI")
         #update the labels
         self.show_consi.configure(text=pneumatic.c_cart)
         self.show_consiA.configure(text=pneumatic.c_ato)

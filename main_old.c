@@ -68,7 +68,7 @@
 #define PORT 12345
 #define BUFFER_SIZE 10//9 bit + /n
 
-int server_fd, client_fd=-1;
+int server_fd, client_fd;
 struct sockaddr_in address;
 int addrlen = sizeof(address);
 char buffer[BUFFER_SIZE] = {0};
@@ -117,10 +117,6 @@ const static ec_pdo_entry_reg_t domain1_regs[] = {
     //{DigOutSlavePos, Beckhoff_EL2024, 0x7010, 0x01, &off_dig_out2},
     {}
 };
-//ana1 + dig1 =atomisation with 0-2bar vppm
-//ana2 + dig2 = cartouche with 0-6 bar vppm
-//dig3 = pointeau with minimum 5.7 bar
-
 
 static unsigned int counter = 0;
 static unsigned int blink = 0;
@@ -253,42 +249,16 @@ void decodeMessage(const char *mes)
     dig1=mes[1]-'0';
     dig2=mes[2]-'0';
     dig3=mes[3]-'0';
-    if (mes[4] - '0'!=0){
-        ana1 = (mes[4] - '0') * 10 + (mes[5] - '0');
-        ana1 = (ana1 / 20.0f) * 65535.0f;//on the 0-2 bar VPPM
-    }
-    else if (mes[5] - '0'!=0){
-        ana1 = (mes[5] - '0');
-        ana1 = (ana1 / 20.0f) * 65535.0f;//on the 0-2 bar VPPM
-    }
-    else{
-        ana1=0;
-    }
-
-    if (mes[6] - '0'!=0){
-        ana2 = (mes[6] - '0') * 10 + (mes[7] - '0');
-        ana2 = (ana2 / 20.0f) * 21845.0f;//on the 0-6 bar vppm final approximation will have to be defined
-    }
-    else if (mes[7] - '0'!=0){
-        ana2 = (mes[7] - '0');
-        ana2 = (ana2 / 20.0f) * 21845.0f;//on the 0-6 bar VPPM
-    }
-    else{
-        ana2=0;
-    }
+    ana1 = (mes[4] - '0') * 10 + (mes[5] - '0');
+    ana1 = (ana1 / 20.0f) * 65535.0f;
+    ana2 = (mes[6] - '0') * 10 + (mes[7] - '0');
+    ana2 = (ana2 / 20.0f) * 65535.0f;
 }
 
 /*fct for the sockets*/
 void set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
-    if (flags < 0) {
-        perror("fcntl(F_GETFL)");
-        exit(EXIT_FAILURE);
-    }
-    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
-        perror("fcntl(F_SETFL)");
-        exit(EXIT_FAILURE);
-    }
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
 void start_socket() {
@@ -327,67 +297,55 @@ void start_socket() {
 
     printf("Server listening on port %d\n", PORT);
 
-    // Set the server socket to non-blocking mode
-    set_nonblocking(server_fd);
+    // Accept an incoming connection
+    if ((client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
+        perror("accept");
+        close(server_fd);
+        exit(EXIT_FAILURE);
+    }
+
+    // Set the socket to non-blocking mode
+    set_nonblocking(client_fd);
 }
 
 void close_socket() {
-    if (client_fd != -1) {
-        close(client_fd);
-    }
+    close(client_fd);
     close(server_fd);
 }
 
 void listen_to_socket() {
-    if (client_fd == -1) {
-        // No client connection yet, try to accept one
-        client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-        if (client_fd < 0) {
-            if (errno != EWOULDBLOCK) {
-                perror("accept");
-            }
-            client_fd = -1;
-        } else {
-            printf("Client connected\n");
-            set_nonblocking(client_fd);
-        }
-    } else {
-        // Client connected, listen for data
-        fd_set read_fds;
-        struct timeval timeout;
+    fd_set read_fds;
+    struct timeval timeout;
 
-        FD_ZERO(&read_fds);
-        FD_SET(client_fd, &read_fds);
+    FD_ZERO(&read_fds);
+    FD_SET(client_fd, &read_fds);
 
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 0;  // No wait
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
 
-        int activity = select(client_fd + 1, &read_fds, NULL, NULL, &timeout);
+    int activity = select(client_fd + 1, &read_fds, NULL, NULL, &timeout);
 
-        if (activity < 0) {
-            perror("select");
-        } else if (activity > 0 && FD_ISSET(client_fd, &read_fds)) {
-            // Read data from the client
-            int bytes_read = read(client_fd, buffer, BUFFER_SIZE);
-            if (bytes_read > 0) {
-                buffer[bytes_read] = '\0'; // Null-terminate the received string
-                printf("Received from client: %s\n", buffer);
-                strcpy(message, buffer);
+    if (activity < 0) {
+        perror("select");
+    } else if (activity > 0 && FD_ISSET(client_fd, &read_fds)) {
+        // Read data from the client
+        int bytes_read = read(client_fd, buffer, BUFFER_SIZE);
+        if (bytes_read > 0) {
+            buffer[bytes_read] = '\0'; // Null-terminate the received string
+            printf("Received from client: %s\n", buffer);
+            strcpy(message, buffer);
 
-                // Send a response back to the client
-                char *response = "Hello from C server!";
-                write(client_fd, response, strlen(response));
+            // Send a response back to the client
+            char *response = "Hello from C server!";
+            write(client_fd, response, strlen(response));
 
-                if (strcmp(buffer, "0") == 0) {
-                    loop = 0;
-                }
-            } else if (bytes_read == 0) {
-                // Client disconnected
-                printf("Client disconnected\n");
-                close(client_fd);
-                client_fd = -1;
+            if (strcmp(buffer, "0") == 0) {
+                loop = 0;
             }
         }
+    }
+    else{
+        strcpy(message, "");
     }
 }
 
@@ -454,15 +412,6 @@ void check_slave_config_states(void)
 
 void cyclic_task()
 {
-    //local variables
-    uint16_t current_ana1 = 0;
-    uint16_t current_ana2 = 0;
-    uint8_t current_dig = 0;
-    uint8_t current_dig1 = 0;
-    uint8_t current_dig2 = 0;
-    u_int8_t current_dig3=0;
-    int dig_flag=0;
-
     // receive process data
     ecrt_master_receive(master);
     ecrt_domain_process(domain1);
@@ -472,46 +421,42 @@ void cyclic_task()
 
     listen_to_socket();
 
-    //printf("!");
     //check updates from the GUI
     if (message[0] != '\0'){
         decodeMessage(message);//here the IPC will have to be added
-        
+        /*
         //check if the state if 0 to kill program
         if (!state){
             //maybe turning off everythin properly first
             
             //digital write
             EC_WRITE_U8(domain1_pd + off_dig_out1, 0x00);
+            //EC_WRITE_U8(domain1_pd + off_dig_out2, 0x00 );
 
             //analog write // a slow decrease might be needed 
             EC_WRITE_U16(domain1_pd + off_ana_out1, 0);
             EC_WRITE_U16(domain1_pd + off_ana_out2, 0);
-            //printf("Terminating cycle...");
+            printf("Terminating cycle...");
 
             loop=0;//will add a flag here to terminate the while loop in the main
 
             return;//exit the program
         }
-        
+
         // Read the current value at the address
-        current_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);//cartouche
-        current_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);//atomisation
-        current_dig = EC_READ_U8(domain1_pd + off_dig_out1);
-        current_dig1 = (current_dig&(1<<0));//cartouche 
-        current_dig2 = (current_dig&(1<<1))/2;//atomisation
-        current_dig3 = (current_dig&(1<<2))/4;//pointeau
+        uint16_t current_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);
+        uint16_t current_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);
+        uint8_t current_dig = EC_READ_U8(domain1_pd + off_dig_out1);
+        uint8_t current_dig1 = current_dig%2;
+        uint8_t current_dig2 = (current_dig- current_dig1)%2;
 
         // Compare with the new value and write if needed
         if (current_ana1 != ana1) {
-            EC_WRITE_U16(domain1_pd + off_ana_out1, ana1);//cartouche
+            EC_WRITE_U16(domain1_pd + off_ana_out1, ana1);
         }
-        //EC_WRITE_U16(domain1_pd + off_ana_out1, ana1);
         if (current_ana2 != ana2) {
-            EC_WRITE_U16(domain1_pd + off_ana_out2, ana2);//ana2 = atomisation
+            EC_WRITE_U16(domain1_pd + off_ana_out2, ana2);
         }
-        
-        //cartouche
         if (current_dig1 != dig1) {
             if(dig1){
                 current_dig=current_dig | 0x01;
@@ -519,10 +464,9 @@ void cyclic_task()
             else{
                 current_dig=current_dig ^ 0x01;
             }
-            dig_flag=1;
-
+            EC_WRITE_U8(domain1_pd + off_dig_out1, current_dig);
         }
-        //atomisation
+        
         if (current_dig2 != dig2) {
             if(dig2){
                 current_dig=current_dig | 0x02;
@@ -530,26 +474,9 @@ void cyclic_task()
             else{
                 current_dig=current_dig ^ 0x02;
             }
-            dig_flag=1;
-
-        }
-        //pointeau
-        /*
-        if (current_dig3 != dig3) {
-            if(dig3){
-                current_dig=current_dig | 0x04;
-            }
-            else{
-                current_dig=current_dig ^ 0x04;
-            }
-            dig_flag=1;
-
-        }*/
-        if (dig_flag)
-        {
             EC_WRITE_U8(domain1_pd + off_dig_out1, current_dig);
         }
-        
+        */
     }
     
     if (counter) {
@@ -560,21 +487,22 @@ void cyclic_task()
 
         // calculate new process data
         blink = !blink;
-        
+        /*
         //check sent signals
         uint16_t check_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);
         uint16_t check_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);
         uint8_t check_dig1 = EC_READ_U8(domain1_pd + off_dig_out1);
-        printf("Check Analog Output 1: %u and Analog Output 2: %u\n", check_ana1, check_ana2);
-        printf("Check Digital Output 1: %u and Digital Output 2: %u and Digital Output 3: %u\n", check_dig1, check_dig1, check_dig1);
+        uint8_t check_dig2 = EC_READ_U8(domain1_pd + off_dig_out1);*/
+        printf("Check Analog Output 1: %f and Analog Output 2: %f\n", ana1, ana2);
+        printf("Check Digital Output 1: %u and Digital Output 2: %u and Digital Output 3: %u\n", dig1, dig2, dig3);
 
 
         //Analog read
-        
+        /*
         uint16_t ana_in_value1 = EC_READ_U16(domain1_pd + off_ana_in1);
         uint16_t ana_in_value2 = EC_READ_U16(domain1_pd + off_ana_in2);
         printf("Input1 : %u and Input 2: %u\n", ana_in_value1, ana_in_value2);
-        
+        */
         // check for master state (optional)
         check_master_state();
 
@@ -690,14 +618,12 @@ int main()
 
     printf("Starting RT task with dt=%u ns.\n", PERIOD_NS);
 
-    
+    //socket start
+    start_socket();
 
     clock_gettime(CLOCK_MONOTONIC, &wakeup_time);
     wakeup_time.tv_sec += 1; /* start in future */
     wakeup_time.tv_nsec = 0;
-
-    //socket start
-    start_socket();
 
     while (loop) {
         ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
@@ -717,7 +643,6 @@ int main()
     }
 
     close_socket();
-    printf("killing c process");
     return ret;
 }
 
