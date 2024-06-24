@@ -10,10 +10,22 @@ G28 W ; home all without mesh bed level
 G21 ; set units to millimeters
 G90 ; use absolute coordinates
 
-G1 Z20 ;
-G1 X10 Y10 F1000.000 ; point de départ de trajectoire 
-G1 Z13.3 F1000.000 ; hauteur avec offset de 12,3mm (thorlabs + erreur)
-G1 X175 E22.4 F1000.000 ; point de fin de trajectoire
+G1 Z10 ;
+G1 X10 Y50 F1000.000 ; point de départ de trajectoire 
+G1 Z3 F1000.000 ; 
+G1 X175 E22.4 F10.000 ; point de fin de trajectoire
+G1 E-0.80000 F2100.00000 ;
+G1 Z5 F1000.000 ; 
+
+G1 X10 Y80 F1000.000 ; point de départ de trajectoire 
+G1 Z5 F1000.000 ; 
+G1 X175 E22.4 F11000.000 ; point de fin de trajectoire
+G1 E-0.80000 F2100.00000 ;
+G1 Z5 F1000.000 ; 
+
+G1 X10 Y110 F1000.000 ; point de départ de trajectoire 
+G1 Z7 F1000.000 ; 
+G1 X175 E22.4 F12000.000 ; point de fin de trajectoire
 G1 E-0.80000 F2100.00000 ;
 
 G1 Z40 ;

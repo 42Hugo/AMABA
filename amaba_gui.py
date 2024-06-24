@@ -24,7 +24,7 @@ class printer():
     def start_c_program():
         # Start the C program as a subprocess
         process = subprocess.Popen(['/home/amaba/Desktop/dev_ws/ighEthercat/ethercat/examples/user/ec_user_example'],  stdin=subprocess.PIPE)
-        time.sleep(5)#there needs to be a little delay to allow the c subprocess to start
+        time.sleep(10)#there needs to be a little delay to allow the c subprocess to start
         return process
 
     def stop_c_program(process):
@@ -63,12 +63,27 @@ class printer():
             #print(f"Received: {line}")
             printer.flag+=1
 
+    def sendToClient(state, client):
+        presAto= int(pneumatic.c_ato*10)
+        if (presAto<10):
+            presAtostr="0"+str(presAto)
+        else:
+            presAtostr=str(presAto)
+        presCart= int(pneumatic.c_cart*10)
+        if (presCart<10):
+            presCartstr="0"+str(presCart)
+        else:
+            presCartstr=str(presCart)
+        mes = str(state) + str(pneumatic.st_cart)+  str(pneumatic.st_Ato) + str(pneumatic.st_point) + presCartstr +presAtostr 
+        printer.send_with_socket(client, mes)
+
+
     def update(gui_instance, client, state):
         #print("starting the update loop")
         if printer.depose==0:
             #print("turn off the buse")
-            #pneumatic.st_Ato=0
-            #pneumatic.st_cart=0
+            pneumatic.st_Ato=1
+            pneumatic.st_cart=1
             pneumatic.st_point=0
         else: 
             #print("turn on the buse")
@@ -91,18 +106,8 @@ class printer():
             pneumatic.c_ato=0
             pneumatic.c_cart=0
         
-        presAto= int(pneumatic.c_ato*10)
-        if (presAto<10):
-            presAtostr="0"+str(presAto)
-        else:
-            presAtostr=str(presAto)
-        presCart= int(pneumatic.c_cart*10)
-        if (presCart<10):
-            presCartstr="0"+str(presCart)
-        else:
-            presCartstr=str(presCart)
-        mes = str(state) + str(pneumatic.st_cart)+  str(pneumatic.st_Ato) + str(pneumatic.st_point) + presCartstr +presAtostr 
-        printer.send_with_socket(client, mes)
+        printer.sendToClient(state, client)
+        
         #print(f"Mes sent in socket: {mes}")
         amabaGUI.update(gui_instance)
 
@@ -120,6 +125,8 @@ class printer():
         #start com with c
         client=printer.start_socket()
         #print("starting the socket")
+
+        printer.sendToClient(1,client)
 
         for data in gcode_lines:
             modified_line = data.split(';')[0]
@@ -211,9 +218,9 @@ class printer():
 
 class pneumatic:
     #st 0 ou 1 pour controller les vannes
-    st_cart=0
+    st_cart=1
     st_point=0
-    st_Ato=0
+    st_Ato=1
 
     #c pour consigne la valeur envoyé à la vanne en bar
     c_cart=0.7 #entre 0 et 2
