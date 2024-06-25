@@ -19,6 +19,9 @@ class printer():
     depose=0
     p=None
     current_response=""
+    client = None
+    c_program_process = None
+
     # Callback function to handle responses from the printer
 
     def start_c_program():
@@ -74,7 +77,7 @@ class printer():
             presCartstr="0"+str(presCart)
         else:
             presCartstr=str(presCart)
-        mes = str(state) + str(pneumatic.st_cart)+  str(pneumatic.st_Ato) + str(pneumatic.st_point) + presCartstr +presAtostr 
+        mes = str(state) +  str(pneumatic.st_Ato) + str(pneumatic.st_cart)+ str(pneumatic.st_point)  +presAtostr + presCartstr
         printer.send_with_socket(client, mes)
 
 
@@ -111,10 +114,25 @@ class printer():
         #print(f"Mes sent in socket: {mes}")
         amabaGUI.update(gui_instance)
 
+    def pneumatic_control():
+        #start c process
+        printer.c_program_process = printer.start_c_program()
+
+        #start com with c
+        printer.client=printer.start_socket()
+
+
+    def stop_pneumatic_control():
+        printer.sendToClient(0,printer.client)
+        printer.client.close()  
+        #end c process
+        printer.stop_c_program(printer.c_program_process)
+    
+
 
     def get_line_and_modify(gcode_lines,gui_instance):
         #start c process
-        c_program_process = printer.start_c_program()
+        printer.c_program_process = printer.start_c_program()
         printer.depose = 0
         new_layer = 0
         printer.flag=0
@@ -123,10 +141,10 @@ class printer():
         #printer.update(gui_instance)
 
         #start com with c
-        client=printer.start_socket()
+        printer.client=printer.start_socket()
         #print("starting the socket")
 
-        printer.sendToClient(1,client)
+        printer.sendToClient(1,printer.client)
 
         for data in gcode_lines:
             modified_line = data.split(';')[0]
@@ -176,7 +194,7 @@ class printer():
                 layer = layer + "\n" + modified_line
                 new_layer=0
                 printer.flag=0
-                printer.update(gui_instance, client, 1) #send to c
+                printer.update(gui_instance, printer.client, 1) #send to c
                 
 
         layer= layer + "\n" + "M400" 
@@ -184,7 +202,7 @@ class printer():
             #print("OFF")#ici c'est la couche actuel dont on a la dépose
         #else:
             #print("ON")  
-        printer.update(gui_instance, client, 0)#ligne rajouter sans test à verifier si pose un problème, on envoie 2 fois le message ?
+        printer.update(gui_instance, printer.client, 0)#ligne rajouter sans test à verifier si pose un problème, on envoie 2 fois le message ?
         printer.p.send_now(layer)
         while printer.flag!=(count+1):
             pass
@@ -192,9 +210,9 @@ class printer():
         # Close the connections
         printer.p.disconnect()
         # Close the socket
-        client.close()  
+        printer.client.close()  
         #end c process
-        printer.stop_c_program(c_program_process)
+        printer.stop_c_program(printer.c_program_process)
         return
 
 
@@ -393,21 +411,34 @@ class amabaGUI:
         )
         self.on_point.pack(padx=10,pady=10)
 
-        #We just have to pressure sensor so maybe not this one
-        self.press_point = customtkinter.CTkLabel(
-        master = self.pointeau_frame,
-        text="Pression",
-        #command = self.next_turn
+        self.gcode = customtkinter.CTkButton(
+        master =self.pointeau_frame,
+        text="start pneumatic",
+        command = printer.pneumatic_control,
+        width=20,
+        height=10,
         )
-        #self.press_point.pack(padx=10,pady=0) 
 
-        self.show_pressP = customtkinter.CTkLabel(
-        master = self.pointeau_frame,
-        text=pneumatic.p_point,
-        #command = self.next_turn
+        self.gcode.pack(padx=10,pady=5)
+        self.gcode = customtkinter.CTkButton(
+        master =self.pointeau_frame,
+        text="change pneumatic",
+        command = printer.sendToClient,
+        width=20,
+        height=10,
         )
-        #self.show_pressP.pack(padx=10,pady=0)
+        self.gcode.pack(padx=10,pady=5)
 
+        self.gcode = customtkinter.CTkButton(
+        master =self.pointeau_frame,
+        text="end pneumatic",
+        command = printer.stop_pneumatic_control,
+        width=20,
+        height=10,
+        )
+        self.gcode.pack(padx=10,pady=5)
+
+        
 
 
         #frame atmisation
