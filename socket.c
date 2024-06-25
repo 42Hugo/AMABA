@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/select.h>
+#include <errno.h>
 
 #define PORT 12345
 #define BUFFER_SIZE 1024
@@ -16,9 +17,17 @@ int addrlen = sizeof(address);
 char buffer[BUFFER_SIZE] = {0};
 int loop = 1;
 
+/*fct for the sockets*/
 void set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
-    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    if (flags < 0) {
+        perror("fcntl(F_GETFL)");
+        exit(EXIT_FAILURE);
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        perror("fcntl(F_SETFL)");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void start_socket() {
@@ -57,53 +66,70 @@ void start_socket() {
 
     printf("Server listening on port %d\n", PORT);
 
-    // Accept an incoming connection
-    if ((client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-        perror("accept");
-        close(server_fd);
-        exit(EXIT_FAILURE);
-    }
-
-    // Set the socket to non-blocking mode
-    set_nonblocking(client_fd);
+    // Set the server socket to non-blocking mode
+    set_nonblocking(server_fd);
 }
 
 void close_socket() {
-    close(client_fd);
+    if (client_fd != -1) {
+        close(client_fd);
+    }
     close(server_fd);
 }
 
 void listen_to_socket() {
-    fd_set read_fds;
-    struct timeval timeout;
+    if (client_fd == -1) {
+        // No client connection yet, try to accept one
+        client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+        if (client_fd < 0) {
+            if (errno != EWOULDBLOCK) {
+                perror("accept");
+            }
+            client_fd = -1;
+        } else {
+            printf("Client connected\n");
+            set_nonblocking(client_fd);
+        }
+    } else {
+        // Client connected, listen for data
+        fd_set read_fds;
+        struct timeval timeout;
 
-    FD_ZERO(&read_fds);
-    FD_SET(client_fd, &read_fds);
+        FD_ZERO(&read_fds);
+        FD_SET(client_fd, &read_fds);
 
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 0;  // No wait
 
-    int activity = select(client_fd + 1, &read_fds, NULL, NULL, &timeout);
+        int activity = select(client_fd + 1, &read_fds, NULL, NULL, &timeout);
 
-    if (activity < 0) {
-        perror("select");
-    } else if (activity > 0 && FD_ISSET(client_fd, &read_fds)) {
-        // Read data from the client
-        int bytes_read = read(client_fd, buffer, BUFFER_SIZE);
-        if (bytes_read > 0) {
-            buffer[bytes_read] = '\0'; // Null-terminate the received string
-            printf("Received from client: %s\n", buffer);
+        if (activity < 0) {
+            perror("select");
+        } else if (activity > 0 && FD_ISSET(client_fd, &read_fds)) {
+            // Read data from the client
+            int bytes_read = read(client_fd, buffer, BUFFER_SIZE);
+            if (bytes_read > 0) {
+                buffer[bytes_read] = '\0'; // Null-terminate the received string
+                printf("Received from client: %s\n", buffer);
+                //strcpy(message, buffer);
 
-            // Send a response back to the client
-            char *response = "Hello from C server!";
-            write(client_fd, response, strlen(response));
+                // Send a response back to the client
+                char *response = "Hello from C server!";
+                write(client_fd, response, strlen(response));
 
-            if (strcmp(buffer, "0") == 0) {
-                loop = 0;
+                if (strcmp(buffer, "0") == 0) {
+                    loop = 0;
+                }
+            } else if (bytes_read == 0) {
+                // Client disconnected
+                printf("Client disconnected\n");
+                close(client_fd);
+                client_fd = -1;
             }
         }
     }
 }
+
 
 int main() {
     start_socket();
@@ -113,6 +139,6 @@ int main() {
     }
 
     close_socket();
-
+    printf("killing c process");
     return 0;
 }
