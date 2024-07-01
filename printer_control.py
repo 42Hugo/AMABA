@@ -10,6 +10,15 @@ class printer():
         self.depose=0
         self.p=None
         self.current_response=""
+        self.gcode_lines=""
+        self.homed=0
+        self.speed=4000 #printing speed, keep g-code info if 0
+        self.z=1 #printing height, keep the g-code info if 0
+        self.sub=0 #height of the substrat, 0 if no substrat
+        self.bed_max_y=160
+        self.bed_max_x=160
+        self.line=20#y position of the test line
+
         
     
     def response_callback(line):
@@ -19,7 +28,8 @@ class printer():
             #print(f"Received: {line}")
             printer.flag+=1
 
-    def update(gui_instance, state):
+    
+    def update(self, state):
         #print("starting the update loop")
         if printer.depose==0:
             #print("turn off the buse")
@@ -53,7 +63,7 @@ class printer():
         #GUI.update(gui_instance)
 
 
-    def get_line_and_modify(gcode_lines,gui_instance):
+    def get_line_and_modify(self):
         #start c process
         #c_program_process = printer.start_c_program()
         printer.depose = 0
@@ -69,12 +79,13 @@ class printer():
 
         pneumatic.sendToClient(1)
 
-        for data in gcode_lines:
+        for data in self.gcode_lines:
             modified_line = data.split(';')[0]
 
             if (data.startswith('M140') or data.startswith('M862') or 
                 data.startswith('M104') or data.startswith('M190') or 
-                data.startswith('M109') or data.startswith('\n')):
+                data.startswith('M109') or data.startswith('\n') or
+                data.startswith('G28')):
                 continue
             elif data.startswith('G1'):
                 if 'E' in data:
@@ -117,7 +128,7 @@ class printer():
                 layer = layer + "\n" + modified_line
                 new_layer=0
                 printer.flag=0
-                printer.update(gui_instance, 1) #send to c
+                printer.update(1) #send to c
                 
 
         layer= layer + "\n" + "M400" 
@@ -125,7 +136,7 @@ class printer():
             #print("OFF")#ici c'est la couche actuel dont on a la dépose
         #else:
             #print("ON")  
-        printer.update(gui_instance, 0)#ligne rajouter sans test à verifier si pose un problème, on envoie 2 fois le message ?
+        printer.update(0)#ligne rajouter sans test à verifier si pose un problème, on envoie 2 fois le message ?
         printer.p.send_now(layer)
         while printer.flag!=(count+1):
             pass
@@ -138,21 +149,48 @@ class printer():
         #printer.stop_c_program(c_program_process)
         return
 
+    def load_gcode(self, path):
+        # Load the G-code file
+        with open(path, 'r') as file_object:
+            self.gcode_lines = file_object.readlines()
+        
+        return
+    
+    def next_position(self):
+        if self.line<(self.bed_max_y-20):
+            self.line+=20
+        self.p.send_now("G1 X10 Y"+str(self.line) +" Z" +str(10 + self.sub))
 
-    def connect(path):
+    def prev_position(self):
+        if self.line>20:
+            self.line-=20
+        self.p.send_now("G1 X10 Y"+str(self.line) +" Z" +str(10 + self.sub))
+
+    def print_line(self):
+        if (self.z>=1 and self.sub>=0):
+            self.gcode_lines="G1 X10 Y"+str(self.line) +" Z" +str(10 + self.sub)+ "\n"
+            self.gcode_lines="G1 Z"+str(self.z+self.sub) + "\n"
+            self.gcode_lines="G1 X180 E22.4 F"+str(self.speed)+ "\n"
+            self.gcode_lines="G1 E-0.80000 F2100.00000 \n"
+            self.gcode_lines="G1 X10 Y"+str(self.line) +" Z" +str(10 + self.sub)+ "\n"
+            self.get_line_and_modify
+        else:
+            print("can't print layer height or z height not valid")
+
+
+    def connect(self):
         # Start communication with the printer
-        printer.p = printcore('/dev/ttyACM0', 115200)
-        printer.flag = 0
+        self.p = printcore('/dev/ttyACM0', 115200)
+        self.flag = 0
         # Set the response callback
         printer.p.loud = True
         printer.p.recvcb = printer.response_callback
 
-        # Load the G-code file
-        with open(path, 'r') as file_object:
-            gcode_lines = file_object.readlines()
-
         # Wait until the printer is connected
-        while not printer.p.online:
+        while not self.p.online:
             time.sleep(0.1)
         
-        return gcode_lines
+        printer.p.send_now("G28 W")
+        printer.p.send_now("G1 Z20") 
+        self.homed=1
+        return 

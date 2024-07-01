@@ -31,10 +31,10 @@ class pneumatic:
         self.port = 12345
 
         #launch the c process
-        self.process = self.start_c_program()
+        #self.process = self.start_c_program()
 
         #laucn socket
-        self.client= self.start_socket()
+        #self.client= self.start_socket()
 
     def start_c_program(self):
         # Start the C program as a subprocess
