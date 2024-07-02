@@ -1,6 +1,7 @@
 from printrun.printcore import printcore
 from printrun import gcoder
 import time
+import io
 
 from pneumatic_control import pneumatic
 
@@ -15,69 +16,78 @@ class printer():
         self.speed=4000 #printing speed, keep g-code info if 0
         self.z=1 #printing height, keep the g-code info if 0
         self.sub=0 #height of the substrat, 0 if no substrat
-        self.bed_max_y=160
+        self.bed_max_y=180#check max safe value
         self.bed_max_x=160
         self.line=20#y position of the test line
+        self.min_z=0.5#[mm]
+        self.max_z=20
+        self.min_sub=0
+        self.max_sub=50
+        self.min_speed=500
+        self.max_speed=15000
 
         
     
-    def response_callback(line):
+    def response_callback(self,line):
         current_response = line
         #print(f"Received: {line}")
         if "ok" in line:
             #print(f"Received: {line}")
-            printer.flag+=1
+            self.flag+=1
 
     
-    def update(self, state):
+    def update(self,pneumatic_inst, state):
         #print("starting the update loop")
-        if printer.depose==0:
+        if self.depose==0:
             #print("turn off the buse")
-            pneumatic.st_Ato=1
-            pneumatic.st_cart=1
-            pneumatic.st_point=0
+            pneumatic_inst.st_Ato=1
+            pneumatic_inst.st_cart=1
+            pneumatic_inst.st_point=0
         else: 
             #print("turn on the buse")
+            """
             if pneumatic.automatic==0:
                 pneumatic.st_Ato=1
                 pneumatic.st_cart=1
                 pneumatic.st_point=1
             else:
-                pneumatic.c_ato=0.4#get the F of the g code to mplement here
-                pneumatic.c_cart=1.3
-                ##send new pressure based on GUI
-
-                pneumatic.st_Ato=1
-                pneumatic.st_cart=1
-                pneumatic.st_point=1
+            pneumatic_inst.c_ato=0.4#get the F of the g code to mplement here
+            pneumatic_inst.c_cart=1.3
+            ##send new pressure based on GUI
+            """
+            pneumatic_inst.st_Ato=1
+            pneumatic_inst.st_cart=1
+            pneumatic_inst.st_point=1
                 #####GPIO here to turn on the vans
         if not state:
-            pneumatic.st_Ato=0
-            pneumatic.st_cart=0
-            pneumatic.c_ato=0
-            pneumatic.c_cart=0
+            pneumatic_inst.st_Ato=0
+            pneumatic_inst.st_cart=0
+            pneumatic_inst.c_ato=0
+            pneumatic_inst.c_cart=0
         
-        pneumatic.sendToClient(state)
+        pneumatic.sendToClient(pneumatic_inst, state)
         
         #print(f"Mes sent in socket: {mes}")
         #GUI.update(gui_instance)
 
 
-    def get_line_and_modify(self):
+    def get_line_and_modify(self,pneumatic_inst):
         #start c process
         #c_program_process = printer.start_c_program()
-        printer.depose = 0
+        self.depose = 0
         new_layer = 0
-        printer.flag=0
+        self.flag=0
         layer=""
         count=0
-        #printer.update(gui_instance)
+        
+        #valeurs reçu mais pas pris en compte pour le moment
+        print(f"Printing Speed: {self.speed}")
+        print(f"Printing Height (z): {self.z}")
+        print(f"Substrate Height (sub): {self.sub}")
+        print(f"Y Position of the Test Line: {self.line}")
 
-        #start com with c
-        #client=printer.start_socket()
-        #print("starting the socket")
-
-        pneumatic.sendToClient(1)
+        pneumatic.sendToClient(pneumatic_inst,1)
+        print(f"what's gonne be printed: {self.gcode_lines}")
 
         for data in self.gcode_lines:
             modified_line = data.split(';')[0]
@@ -95,13 +105,15 @@ class printer():
                         E_value = None
 
                     if E_value is not None:
-                        if E_value > 0 and printer.depose==0:
+                        if E_value > 0 and self.depose==0:
                             new_layer=1
-                            printer.depose=1
-                        elif E_value <= 0 and printer.depose==1:
+                            self.depose=1
+                        elif E_value <= 0 and self.depose==1:
                             new_layer=1
-                            printer.depose=0
+                            self.depose=0
                         #normalement il n'y a pas de cas ou le E a juse pas de chiffre pour le stopper mais à verifier
+                    
+                    
             if new_layer==0:
                 #print(f"sending: {modified_line}")
                 #p.send_now(modified_line)
@@ -114,11 +126,11 @@ class printer():
                     #print("ON")#on dirait c'est inversé c'est par ce que c'est la future couche dont on a l'info dépose
                 #else:
                     #print("OFF")
-                printer.p.send_now(layer)  #send to printer
+                self.p.send_now(layer)  #send to printer
                 #p.send_now("M400")
                 #print(f"sending: {layer}")
                 
-                while printer.flag!=(count+1):
+                while self.flag!=(count+1):
                     pass
                 #print("ok received")
                 count=1
@@ -127,8 +139,8 @@ class printer():
                 #print("start new layer")
                 layer = layer + "\n" + modified_line
                 new_layer=0
-                printer.flag=0
-                printer.update(1) #send to c
+                self.flag=0
+                self.update(pneumatic_inst, 1) #send to c
                 
 
         layer= layer + "\n" + "M400" 
@@ -136,13 +148,13 @@ class printer():
             #print("OFF")#ici c'est la couche actuel dont on a la dépose
         #else:
             #print("ON")  
-        printer.update(0)#ligne rajouter sans test à verifier si pose un problème, on envoie 2 fois le message ?
-        printer.p.send_now(layer)
-        while printer.flag!=(count+1):
+        self.update(pneumatic_inst, 1)#ligne rajouter sans test à verifier si pose un problème, on envoie 2 fois le message ?
+        self.p.send_now(layer)
+        while self.flag!=(count+1):
             pass
 
         # Close the connections
-        printer.p.disconnect()
+        #self.p.disconnect()
         # Close the socket
         #client.close()  
         #end c process
@@ -159,21 +171,28 @@ class printer():
     def next_position(self):
         if self.line<(self.bed_max_y-20):
             self.line+=20
-        self.p.send_now("G1 X10 Y"+str(self.line) +" Z" +str(10 + self.sub))
+        self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
+        self.p.send_now("G1 X10 Y"+str(self.line)+" F1000.000")
 
     def prev_position(self):
         if self.line>20:
             self.line-=20
-        self.p.send_now("G1 X10 Y"+str(self.line) +" Z" +str(10 + self.sub))
+        self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
+        self.p.send_now("G1 X10 Y"+str(self.line)+" F1000.000")
 
-    def print_line(self):
-        if (self.z>=1 and self.sub>=0):
-            self.gcode_lines="G1 X10 Y"+str(self.line) +" Z" +str(10 + self.sub)+ "\n"
-            self.gcode_lines="G1 Z"+str(self.z+self.sub) + "\n"
-            self.gcode_lines="G1 X180 E22.4 F"+str(self.speed)+ "\n"
-            self.gcode_lines="G1 E-0.80000 F2100.00000 \n"
-            self.gcode_lines="G1 X10 Y"+str(self.line) +" Z" +str(10 + self.sub)+ "\n"
-            self.get_line_and_modify
+    def print_line(self, pneumatic_inst):
+        if (self.z>=1 and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI first
+
+            gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
+            gcode_string=gcode_string + "G1 X10 Y"+str(self.line) +" F1000.000"+ "\n"
+            gcode_string=gcode_string +"G1 Z"+str(self.z+self.sub) + "\n"
+            gcode_string=gcode_string +"G1 X180 E22.4 F"+str(self.speed)+ "\n"
+            gcode_string=gcode_string +"G1 E-0.80000 F2100.00000 \n"
+            gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+self.z)+ "\n"
+            gcode_string=gcode_string +"G1 X10 Y"+str(self.line) +" F5000.000\n"
+            buf=io.StringIO(gcode_string)
+            self.gcode_lines=buf.readlines()
+            self.get_line_and_modify(pneumatic_inst)
         else:
             print("can't print layer height or z height not valid")
 
@@ -183,14 +202,14 @@ class printer():
         self.p = printcore('/dev/ttyACM0', 115200)
         self.flag = 0
         # Set the response callback
-        printer.p.loud = True
-        printer.p.recvcb = printer.response_callback
+        self.p.loud = True
+        self.p.recvcb = self.response_callback
 
         # Wait until the printer is connected
         while not self.p.online:
             time.sleep(0.1)
         
-        printer.p.send_now("G28 W")
-        printer.p.send_now("G1 Z20") 
+        self.p.send_now("G28 W")
+        self.p.send_now("G1 Z20") 
         self.homed=1
         return 

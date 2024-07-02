@@ -31,14 +31,15 @@ class pneumatic:
         self.port = 12345
 
         #launch the c process
-        #self.process = self.start_c_program()
+        self.process = self.start_c_program()
 
         #laucn socket
-        #self.client= self.start_socket()
+        self.client= self.start_socket()
 
     def start_c_program(self):
         # Start the C program as a subprocess
-        process = subprocess.Popen(['./socket'],  stdin=subprocess.PIPE)
+        #process = subprocess.Popen(['./socket'],  stdin=subprocess.PIPE)
+        process = subprocess.Popen(['/home/amaba/Desktop/dev_ws/ighEthercat/ethercat/examples/user/ec_user_example'],  stdin=subprocess.PIPE)
         time.sleep(1)#there needs to be a little delay to allow the c subprocess to start
         return process
 
@@ -68,23 +69,29 @@ class pneumatic:
         self.client.sendall(mes.encode('utf-8'))
 
         # Receive response
-        response = self.client.recv(1024)
-        print(f"Received from server: {response.decode('utf-8')}")
+        #response = self.client.recv(1024)
+        #print(f"Received from server: {response.decode('utf-8')}")
 
-        if mes == "0":
-            return False
-        return True
+        #if mes == "0":
+            #return False
+        return 
 
     def sendToClient(self,state):
         self.presAto= int(self.c_ato*10)
         if (self.presAto<10):
             presAtostr="0"+str(self.presAto)
+        elif (self.presAto==0):
+            presAtostr="00"
         else:
             presAtostr=str(self.presAto)
         presCart= int(self.c_cart*10)
         if (presCart<10):
             presCartstr="0"+str(presCart)
+        elif(presCart==0):
+            presCart="00"
         else:
             presCartstr=str(presCart)
-        mes = str(state) + str(self.st_cart)+  str(self.st_Ato) + str(self.st_point) + presCartstr +presAtostr 
+        mes = str(state) +  str(self.st_Ato) + str(self.st_cart)+ str(self.st_point)  +presAtostr + presCartstr
         self.send_with_socket(mes)
+        
+        return 

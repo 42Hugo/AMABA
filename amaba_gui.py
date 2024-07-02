@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import *
 from tkinter import filedialog as fd
 import customtkinter
+import time
 
 #for the printer
 from printer_control import printer
@@ -64,7 +65,7 @@ class amabaGUI:
         text="Quit",
         width=80,
         height=30,
-        command=lambda: [pneumatic.stop_c_program(), pneumatic.stop_socket(),self.window.destroy()],
+        command=lambda: [pneumatic.stop_c_program(), pneumatic.stop_socket(),self.window.destroy(), printer.p.disconnect()],
         )
         self.modeBtn.pack(side=RIGHT, anchor=NE, padx=0,pady=0)
 
@@ -301,7 +302,7 @@ class amabaGUI:
             master = self.gcode_frame,
             width = 30,
             height=20,
-            placeholder_text="0",
+            placeholder_text="1",
         )
         self.z_layer_v.grid(row = 1, column = 1, pady = 2, padx=2)
 
@@ -313,9 +314,9 @@ class amabaGUI:
 
         self.speed_v=customtkinter.CTkEntry(
             master = self.gcode_frame,
-            width = 30,
+            width = 60,
             height=20,
-            placeholder_text="0",
+            placeholder_text="500",
         )
         self.speed_v.grid(row = 2, column = 1, pady = 2, padx=2)
 
@@ -338,7 +339,7 @@ class amabaGUI:
         self.n_line = customtkinter.CTkButton(
         master =self.gcode_frame,
         text="Next Position",
-        command = printer.next_position,
+        command = lambda: [self.test_sent_parameters(),printer.next_position()],
         width=80,
         height=30,
         )
@@ -346,7 +347,7 @@ class amabaGUI:
         self.p_line = customtkinter.CTkButton(
         master =self.gcode_frame,
         text="Previous Position",
-        command = printer.prev_position,
+        command = lambda: [self.test_sent_parameters(),printer.prev_position()],
         width=80,
         height=30,
         )
@@ -354,30 +355,62 @@ class amabaGUI:
         self.draw_line = customtkinter.CTkButton(
         master =self.gcode_frame,
         text="Print Line",
-        command = printer.print_line,
+        command=lambda: [self.test_sent_parameters(), printer.print_line(pneumatic)],
         width=80,
         height=30,
         )
 
-
-
+        self.window.after(5000,self.send_loop) 
+        #we start a loop to regularly send info to the ethercat, 
+        #send message when the slides bar are moved is giving to many request = crash
         self.window.mainloop()
+    
+    def send_loop(self):
+        pneumatic.sendToClient(1)
+        self.window.after(5000,self.send_loop)
+
 
     def choose_file(self):
-        self.filePath = fd.askopenfilename()
+        self.window.update()
+        self.filePath = ""
+        self.filePath  = fd.askopenfilename()#crash when used multiple time, only works once, find a solution
+        self.window.update()
+
+    def test_sent_parameters(self):
+        #here check if parameters input by user are valide and disply when needed an error
+        if self.z_layer_v.get()!='':
+            if float(self.z_layer_v.get())>=printer.min_z and float(self.z_layer_v.get())<=printer.max_z:
+                printer.z=float(self.z_layer_v.get())
+            else:
+                tk.messagebox.showinfo("send g-code", "Please choose a Z higher than 1mm")
+                return
+        if self.t_substrat_v.get()!='':
+            if float(self.t_substrat_v.get())>=printer.min_sub and float(self.t_substrat_v.get())<=printer.max_sub:
+                printer.sub=float(self.t_substrat_v.get())
+            else:
+                tk.messagebox.showinfo("send g-code", "Please choose a substrat thicker than 0mm")
+                return
+        if self.speed_v.get()!='':
+            if float(self.speed_v.get())>=printer.min_speed and float(self.speed_v.get())<=printer.max_speed:
+                printer.speed=float(self.speed_v.get())
+            else:
+                tk.messagebox.showinfo("send g-code", "Please choose a speed higher than 500")
+                return
+            return
+
 
     def send_gcode(self):
+        self.test_sent_parameters()
         if self.filePath.endswith(".gcode"):
-            printer.get_line_and_modify(self.filePath)
-            printer.get_line_and_modify()
+            printer.load_gcode(self.filePath)
+            printer.get_line_and_modify(pneumatic)
         else:
-            tkinter.messagebox.showinfo("send g-code", "Please choose a g-code file")
-        self.filePath=""
+            tk.messagebox.showinfo("send g-code", "Please choose a g-code file")
 
     def gcodeF(self):
         if printer.homed==0:
             tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
-            #printer.connect()#connect and do calibration
+            printer.connect()#connect and do calibration
         
         #hide not needed btns
         self.p_line.grid_forget()
@@ -392,7 +425,7 @@ class amabaGUI:
     def test_depose(self):
         if printer.homed==0:
             tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
-            #printer.connect()#connect and do calibration
+            printer.connect()#connect and do calibration
 
         #hide uneeded btn
         self.filebtn.grid_forget()
@@ -440,12 +473,12 @@ class amabaGUI:
     def sliderFc(self, value):
         pneumatic.c_cart=round(value,2)
         self.show_consi.configure(text=pneumatic.c_cart)
-        pneumatic.sendToClient(1)
+        #pneumatic.sendToClient(1)
 
     def sliderFa(self, value):
         pneumatic.c_ato=round(value,2)
         self.show_consiA.configure(text=pneumatic.c_ato)
-        pneumatic.sendToClient(1)
+        #pneumatic.sendToClient(1)
     
     def update(self):
         #print("we re updating the GUI")
