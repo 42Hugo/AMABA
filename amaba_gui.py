@@ -3,12 +3,13 @@ from tkinter import *
 from tkinter import filedialog as fd
 import customtkinter
 import time
+import threading
 
 #for the printer
-from printer_control import printer
+from printer_control import Printer
 
 #for the pneumatic control with ethercat
-from pneumatic_control import pneumatic
+from pneumatic_control import Pneumatic
 
 
 
@@ -154,11 +155,11 @@ class amabaGUI:
 
         self.cart_bar = customtkinter.CTkSlider(
         master = self.cartouche_frame,
-        from_=0, to=2, 
+        from_=0, to=1.7, 
         command=self.sliderFc,
         width = 200,
         height=20,
-        number_of_steps=20,
+        number_of_steps=17,
         )
         self.cart_bar.set(pneumatic.c_cart)
 
@@ -363,20 +364,21 @@ class amabaGUI:
         self.test_sub_btn = customtkinter.CTkButton(
         master =self.gcode_frame,
         text="Test sandard sample",
-        command=lambda: [self.test_sent_parameters(), printer.test_sample(pneumatic)],
+        command=self.run_test_sub,
         width=80,
         height=30,
         )
 
-        self.window.after(5000,self.send_loop) 
+        self.window.after(2000,self.send_loop) 
         #we start a loop to regularly send info to the ethercat, 
         #send message when the slides bar are moved is giving to many request = crash
         self.window.mainloop()
     
     def send_loop(self):
         #could be improved by sending only if changed happened on the slidding bars
+        self.update() #on peut mettre tout le monde à jour ?
         pneumatic.sendToClient(1)
-        self.window.after(1000,self.send_loop)
+        self.window.after(500,self.send_loop)
 
 
     def choose_file(self):
@@ -392,29 +394,36 @@ class amabaGUI:
                 printer.z=float(self.z_layer_v.get())
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a Z higher than 1mm")
-                return
+                return 0
         if self.t_substrat_v.get()!='':
             if float(self.t_substrat_v.get())>=printer.min_sub and float(self.t_substrat_v.get())<=printer.max_sub:
                 printer.sub=float(self.t_substrat_v.get())
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a substrat thicker than 0mm")
-                return
+                return 0
         if self.speed_v.get()!='':
             if float(self.speed_v.get())>=printer.min_speed and float(self.speed_v.get())<=printer.max_speed:
                 printer.speed=float(self.speed_v.get())
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a speed higher than 500")
-                return
-            return
+                return 0
+        return 1
 
+
+    def run_test_sub(self):
+        if self.test_sent_parameters():
+            printer.pneumatic_inst=pneumatic
+            t1= threading.Thread(target=printer.test_sample)
+            t1.start()
+            print("we moved passed the thread")
 
     def send_gcode(self):
-        self.test_sent_parameters()
-        if self.filePath.endswith(".gcode"):
-            printer.load_gcode(self.filePath)
-            printer.get_line_and_modify(pneumatic)
-        else:
-            tk.messagebox.showinfo("send g-code", "Please choose a g-code file")
+        if self.test_sent_parameters():
+            if self.filePath.endswith(".gcode"):
+                printer.load_gcode(self.filePath)
+                printer.get_line_and_modify(pneumatic)
+            else:
+                tk.messagebox.showinfo("send g-code", "Please choose a g-code file")
 
     def gcodeF(self):
         if printer.homed==0:
@@ -488,7 +497,7 @@ class amabaGUI:
             else:
                 self.on_ato.configure(text = "ON")
                 pneumatic.st_Ato = 1
-        pneumatic.sendToClient(1)
+        #pneumatic.sendToClient(1)
     def autoF(self):
         if pneumatic.automatic:
             self.automaticBtn.configure(text = "Manual")
@@ -549,6 +558,6 @@ class amabaGUI:
     #    self.window.after_cancel(self.update)
 
 
-pneumatic=pneumatic()
-printer = printer()
+pneumatic=Pneumatic()
+printer = Printer()
 GUI = amabaGUI()

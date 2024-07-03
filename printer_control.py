@@ -2,10 +2,11 @@ from printrun.printcore import printcore
 from printrun import gcoder
 import time
 import io
+import threading
 
 from pneumatic_control import pneumatic
 
-class printer():
+class Printer():
     def __init__(self):
         self.flag=0
         self.depose=0
@@ -19,15 +20,41 @@ class printer():
         self.bed_max_y=180#check max safe value
         self.bed_max_x=160
         self.line=20#y position of the test line
-        self.min_z=0.5#[mm]
+        self.min_z=0.1#[mm]
         self.max_z=20
         self.min_sub=0
         self.max_sub=50
         self.min_speed=500
         self.max_speed=15000
+        self.pneumatic_inst=None
+
+        self.pile_gcode = []
+        t_gcode= threading.Thread(target=self.send_gcode_routine)
+        t_gcode.start()
+    
+    def send_gcode_routine(self):
 
         
+        # Mettre un mutex sur PILE
+        # si liste pas vide
+        # Lire premier element pile
+        # liberer le mutex sur PILE
+
+        # Send de la premiere ligne gcode
+        # Attendre la reponse
+
+        # Mettre un mutex sur PILE
+        # retirer premier element pile
+        # liberer le mutex sur PILE
+        return 0
     
+    def add_to_pile(self,gcodeLine):
+        # Mettre un mutex sur PILE
+        self.pile_gcode.append(gcodeLine)
+        # Libere le mutex sur PILE
+        return 0
+
+
     def response_callback(self,line):
         current_response = line
         #print(f"Received: {line}")
@@ -40,7 +67,7 @@ class printer():
         #print("starting the update loop")
         if self.depose==0:
             #print("turn off the buse")
-            pneumatic_inst.st_Ato=1
+            pneumatic_inst.st_Ato=0
             pneumatic_inst.st_cart=1
             pneumatic_inst.st_point=0
         else: 
@@ -69,7 +96,6 @@ class printer():
         
         #print(f"Mes sent in socket: {mes}")
         #GUI.update(gui_instance)
-
 
     def get_line_and_modify(self,pneumatic_inst):
         #start c process
@@ -196,13 +222,14 @@ class printer():
         else:
             print("can't print layer height or z height not valid")
     
-    def test_sample(self,pneumatic_inst):
-        if (self.z>=1 and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
+    def test_sample(self):
+        if (self.z>=0.1 and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
             ydist=15 #changing in the for loop, start y position
-            xdist=115
+            xdist=120
             #sample_space=30
-            sample_size=85
+            sample_size=70
             line_space=10
+            self.z=self.z-1#withy the current system the nozle is 1mm higher 
 
             gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
             for i in range(0,10):
@@ -217,7 +244,7 @@ class printer():
             gcode_string=gcode_string +"G1 X"+str(xdist-20)+ " Y"+ str(ydist) + " F1000.000"+ "\n" #move out so i can take a pricture
             buf=io.StringIO(gcode_string)
             self.gcode_lines=buf.readlines()
-            self.get_line_and_modify(pneumatic_inst)
+            self.get_line_and_modify(self.pneumatic_inst)
         else:
             print("can't print layer height or z height not valid")
 
@@ -234,6 +261,6 @@ class printer():
             time.sleep(0.1)
         
         self.p.send_now("G28 W")
-        self.p.send_now("G1 Z20") 
+        self.p.send_now("G1 Z10") 
         self.homed=1
         return 

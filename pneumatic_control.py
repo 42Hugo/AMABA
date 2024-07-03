@@ -4,7 +4,7 @@ import select
 import subprocess
 import time
 
-class pneumatic:
+class Pneumatic:
 
     def __init__(self):
         #st 0 ou 1 pour controller les vannes

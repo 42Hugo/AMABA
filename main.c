@@ -52,7 +52,7 @@
 /****************************************************************************/
 
 /** Task period in ns. */
-#define PERIOD_NS   (100000000)
+#define PERIOD_NS   (1000000)
 
 #define MAX_SAFE_STACK (8 * 1024) /* The maximum stack size which is
                                      guranteed safe to access without
@@ -66,7 +66,7 @@
 
 //socket var
 #define PORT 12345
-#define BUFFER_SIZE 10//9 bit + /n
+#define BUFFER_SIZE 1024 //buffer size t change
 
 int server_fd, client_fd=-1;
 struct sockaddr_in address;
@@ -255,11 +255,11 @@ void decodeMessage(const char *mes)
     dig3=mes[3]-'0';
     if (mes[4] - '0'!=0){
         ana1 = (mes[4] - '0') * 10 + (mes[5] - '0');
-        ana1 = (ana1 / 20.0f) * 65535.0f;//on the 0-2 bar VPPM
+        ana1 = 5361.58f*(ana1/10)+1536.84f;//on the 0-6 bar vppm  using only o-2 barfinal approximation will have to be defined
     }
     else if (mes[5] - '0'!=0){
         ana1 = (mes[5] - '0');
-        ana1 = (ana1 / 20.0f) * 65535.0f;//on the 0-2 bar VPPM
+        ana1 = 5361.58f*(ana1/10)+1536.84f;
     }
     else{
         ana1=0;
@@ -267,11 +267,11 @@ void decodeMessage(const char *mes)
 
     if (mes[6] - '0'!=0){
         ana2 = (mes[6] - '0') * 10 + (mes[7] - '0');
-        ana2 = (ana2 / 20.0f) * 21845.0f;//on the 0-6 bar vppm final approximation will have to be defined
+        ana2 = 16383.75f*(ana2/10)+4914.625f;//
     }
     else if (mes[7] - '0'!=0){
         ana2 = (mes[7] - '0');
-        ana2 = (ana2 / 20.0f) * 21845.0f;//on the 0-6 bar VPPM
+        ana2 = 16383.75f*(ana2/10)+4914.625f;//on the 0-2 bar VPPM
     }
     else{
         ana2=0;
@@ -300,7 +300,7 @@ void start_socket() {
         exit(EXIT_FAILURE);
     }
 
-    // Set the socket options to allow reuse of the address
+    // Set the socket options to allow reuse of the a dosn'ddress
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
         perror("setsockopt failed");
         close(server_fd);
@@ -368,19 +368,21 @@ void listen_to_socket() {
             perror("select");
         } else if (activity > 0 && FD_ISSET(client_fd, &read_fds)) {
             // Read data from the client
-            int bytes_read = read(client_fd, buffer, BUFFER_SIZE);
+            int bytes_read = read(client_fd, buffer, 8);
+            //printf("bytes read: %u\n", bytes_read);
             if (bytes_read > 0) {
                 buffer[bytes_read] = '\0'; // Null-terminate the received string
-                printf("Received from client: %s\n", buffer);
+                //printf("Received from client: %s\n", buffer);
                 strcpy(message, buffer);
 
                 // Send a response back to the client
-                char *response = "Hello from C server!";
-                write(client_fd, response, strlen(response));
+                //char *response = "Hello from C server!";
+                //write(client_fd, response, strlen(response));
 
                 if (strcmp(buffer, "0") == 0) {
                     loop = 0;
                 }
+                buffer[0] = '\0';//trying to empty the buffer
             } else if (bytes_read == 0) {
                 // Client disconnected
                 printf("Client disconnected\n");
@@ -397,14 +399,14 @@ void check_domain1_state(void)
     ec_domain_state_t ds;
 
     ecrt_domain_state(domain1, &ds);
-
+    /*
     if (ds.working_counter != domain1_state.working_counter) {
         printf("Domain1: WC %u.\n", ds.working_counter);
     }
     if (ds.wc_state != domain1_state.wc_state) {
         printf("Domain1: State %u.\n", ds.wc_state);
     }
-
+    */
     domain1_state = ds;
 }
 
@@ -415,7 +417,7 @@ void check_master_state(void)
     ec_master_state_t ms;
 
     ecrt_master_state(master, &ms);
-
+    /*
     if (ms.slaves_responding != master_state.slaves_responding) {
         printf("%u slave(s).\n", ms.slaves_responding);
     }
@@ -425,6 +427,7 @@ void check_master_state(void)
     if (ms.link_up != master_state.link_up) {
         printf("Link is %s.\n", ms.link_up ? "up" : "down");
     }
+    */
 
     master_state = ms;
 }
@@ -436,7 +439,7 @@ void check_slave_config_states(void)
     ec_slave_config_state_t s;
 
     ecrt_slave_config_state(sc_ana_in, &s);
-
+    /*
     if (s.al_state != sc_ana_in_state.al_state) {
         printf("AnaIn: State 0x%02X.\n", s.al_state);
     }
@@ -446,7 +449,7 @@ void check_slave_config_states(void)
     if (s.operational != sc_ana_in_state.operational) {
         printf("AnaIn: %soperational.\n", s.operational ? "" : "Not ");
     }
-
+    */
     sc_ana_in_state = s;
 }
 
@@ -476,10 +479,11 @@ void cyclic_task()
     //check updates from the GUI
     if (message[0] != '\0'){
         decodeMessage(message);//here the IPC will have to be added
-        
+        //printf("Received from client: %s\n", message);
         //check if the state if 0 to kill program
         if (!state){
             //maybe turning off everythin properly first
+            
             
             //digital write
             EC_WRITE_U8(domain1_pd + off_dig_out1, 0x00);
@@ -495,21 +499,24 @@ void cyclic_task()
         }
         
         // Read the current value at the address
-        current_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);//cartouche
-        current_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);//atomisation
+        current_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);//ato
+        current_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);//cart
         current_dig = EC_READ_U8(domain1_pd + off_dig_out1);
-        current_dig1 = (current_dig&(1<<0));//cartouche 
-        current_dig2 = (current_dig&(1<<1))/2;//atomisation
+        current_dig1 = (current_dig&(1<<0));//ato 
+        current_dig2 = (current_dig&(1<<1))/2;//cart
         current_dig3 = (current_dig&(1<<2))/4;//pointeau
 
         // Compare with the new value and write if needed
-        if (current_ana1 != ana1) {
-            EC_WRITE_U16(domain1_pd + off_ana_out1, ana1);//cartouche
+        if (current_ana1 != (int)ana1) {
+            printf("current  ana1:%u new ana1: %u \n", current_ana1,(int)ana1);
+            
+            EC_WRITE_U16(domain1_pd + off_ana_out1, (int)ana1);//atomisation
         }
-        //EC_WRITE_U16(domain1_pd + off_ana_out1, ana1);
-        if (current_ana2 != ana2) {
-            EC_WRITE_U16(domain1_pd + off_ana_out2, ana2);//ana2 = atomisation
+        if (current_ana2 != (int)ana2) {
+            
+            EC_WRITE_U16(domain1_pd + off_ana_out2, ana2);//ana2 = cartouche
         }
+
         
         //cartouche
         if (current_dig1 != dig1) {
@@ -522,6 +529,7 @@ void cyclic_task()
             dig_flag=1;
 
         }
+        
         //atomisation
         if (current_dig2 != dig2) {
             if(dig2){
@@ -534,7 +542,7 @@ void cyclic_task()
 
         }
         //pointeau
-        /*
+        
         if (current_dig3 != dig3) {
             if(dig3){
                 current_dig=current_dig | 0x04;
@@ -544,9 +552,10 @@ void cyclic_task()
             }
             dig_flag=1;
 
-        }*/
+        }
         if (dig_flag)
         {
+            printf("writting to the dig");
             EC_WRITE_U8(domain1_pd + off_dig_out1, current_dig);
         }
         
@@ -565,8 +574,8 @@ void cyclic_task()
         uint16_t check_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);
         uint16_t check_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);
         uint8_t check_dig1 = EC_READ_U8(domain1_pd + off_dig_out1);
-        printf("Check Analog Output 1: %u and Analog Output 2: %u\n", check_ana1, check_ana2);
-        printf("Check Digital Output 1: %u and Digital Output 2: %u and Digital Output 3: %u\n", check_dig1, check_dig1, check_dig1);
+        //printf("Check Analog Output 1: %u and Analog Output 2: %u\n", check_ana1, check_ana2);
+        //printf("Check Digital Output 1: %u and Digital Output 2: %u and Digital Output 3: %u\n", check_dig1, check_dig1, check_dig1);
 
 
         //Analog read
