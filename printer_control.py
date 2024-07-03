@@ -169,33 +169,57 @@ class printer():
         return
     
     def next_position(self):
-        if self.line<(self.bed_max_y-20):
-            self.line+=20
+        if self.line<(self.bed_max_y-10):
+            self.line+=10
         self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
-        self.p.send_now("G1 X10 Y"+str(self.line)+" F1000.000")
+        self.p.send_now("G1 X20 Y"+str(self.line)+" F1000.000")
 
     def prev_position(self):
-        if self.line>20:
-            self.line-=20
+        if self.line>(self.bed_min_y+10):
+            self.line-=10
         self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
-        self.p.send_now("G1 X10 Y"+str(self.line)+" F1000.000")
+        self.p.send_now("G1 X20 Y"+str(self.line)+" F1000.000")
 
     def print_line(self, pneumatic_inst):
-        if (self.z>=1 and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI first
+        if (self.z>=1 and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
 
             gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
-            gcode_string=gcode_string + "G1 X10 Y"+str(self.line) +" F1000.000"+ "\n"
+            gcode_string=gcode_string + "G1 X20 Y"+str(self.line) +" F1000.000"+ "\n"
             gcode_string=gcode_string +"G1 Z"+str(self.z+self.sub) + "\n"
             gcode_string=gcode_string +"G1 X180 E22.4 F"+str(self.speed)+ "\n"
             gcode_string=gcode_string +"G1 E-0.80000 F2100.00000 \n"
             gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+self.z)+ "\n"
-            gcode_string=gcode_string +"G1 X10 Y"+str(self.line) +" F5000.000\n"
+            gcode_string=gcode_string +"G1 X20 Y"+str(self.line) +" F5000.000\n"
             buf=io.StringIO(gcode_string)
             self.gcode_lines=buf.readlines()
             self.get_line_and_modify(pneumatic_inst)
         else:
             print("can't print layer height or z height not valid")
+    
+    def test_sample(self,pneumatic_inst):
+        if (self.z>=1 and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
+            ydist=15 #changing in the for loop, start y position
+            xdist=115
+            #sample_space=30
+            sample_size=85
+            line_space=10
 
+            gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
+            for i in range(0,10):
+                gcode_string=gcode_string +"G1 X"+str(xdist)+ " Y"+ str(ydist) + " F1000.000"+ "\n"
+                gcode_string=gcode_string +"G1 Z"+str(self.z+self.sub) + "\n"
+                gcode_string=gcode_string +"G1 X "+str(xdist + sample_size) + " E22.4 F"+str(self.speed)+ "\n"
+                gcode_string=gcode_string +"G1 E-0.80000 F2100.00000 \n"
+                gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+self.z)+ "\n"
+                if i%2==1:
+                        ydist+=2.5
+                ydist+=line_space
+            gcode_string=gcode_string +"G1 X"+str(xdist-20)+ " Y"+ str(ydist) + " F1000.000"+ "\n" #move out so i can take a pricture
+            buf=io.StringIO(gcode_string)
+            self.gcode_lines=buf.readlines()
+            self.get_line_and_modify(pneumatic_inst)
+        else:
+            print("can't print layer height or z height not valid")
 
     def connect(self):
         # Start communication with the printer

@@ -111,7 +111,7 @@ class amabaGUI:
         self.substrat = customtkinter.CTkButton(
         master =self.title_frame,
         text="Test substrat",
-        #command = self.gcodeF,
+        command = self.test_substrat,
         width=100,
         height=40,
         )
@@ -360,14 +360,23 @@ class amabaGUI:
         height=30,
         )
 
+        self.test_sub_btn = customtkinter.CTkButton(
+        master =self.gcode_frame,
+        text="Test sandard sample",
+        command=lambda: [self.test_sent_parameters(), printer.test_sample(pneumatic)],
+        width=80,
+        height=30,
+        )
+
         self.window.after(5000,self.send_loop) 
         #we start a loop to regularly send info to the ethercat, 
         #send message when the slides bar are moved is giving to many request = crash
         self.window.mainloop()
     
     def send_loop(self):
+        #could be improved by sending only if changed happened on the slidding bars
         pneumatic.sendToClient(1)
-        self.window.after(5000,self.send_loop)
+        self.window.after(1000,self.send_loop)
 
 
     def choose_file(self):
@@ -426,16 +435,34 @@ class amabaGUI:
         if printer.homed==0:
             tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
             printer.connect()#connect and do calibration
+        # mettre a 6mm la valeur de base du sample
 
         #hide uneeded btn
         self.filebtn.grid_forget()
         self.start_gcode.grid_forget()
+        self.test_sub_btn.grid_forget()
 
         #make the send_g-code frame display
         self.gcode_frame.pack(padx=10,pady=10)
         self.p_line.grid(row = 3, column = 0, padx=10)
         self.draw_line.grid(row = 3, column = 1,padx=10)
         self.n_line.grid(row = 3, column = 2,padx=10)
+
+    def test_substrat(self):
+        if printer.homed==0:
+            tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
+            printer.connect()#connect and do calibration
+        
+        #hide not needed btns
+        self.p_line.grid_forget()
+        self.draw_line.grid_forget()
+        self.n_line.grid_forget()
+        self.filebtn.grid_forget()
+        self.start_gcode.grid_forget()
+
+        #make the send_g-code frame display
+        self.gcode_frame.pack(padx=10,pady=10)
+        self.test_sub_btn.grid(row = 3, column = 0, columnspan = 2, pady=10,padx=10)
 
 
 
