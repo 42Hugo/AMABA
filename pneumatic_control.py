@@ -77,6 +77,7 @@ class Pneumatic:
         return 
 
     def sendToClient(self,state):
+
         self.presAto= int(self.c_ato*10)
         if (self.presAto<10):
             presAtostr="0"+str(self.presAto)
@@ -95,3 +96,11 @@ class Pneumatic:
         self.send_with_socket(mes)
         
         return 
+
+    """
+    def stop_print(self):
+        self.st_Ato=0
+        self.st_cart=0
+        self.st_point=0
+        self.sendToClient(1)
+    """

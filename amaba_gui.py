@@ -21,6 +21,7 @@ class amabaGUI:
         #if 1 the GUI will adapt to toutch screen and size
         self.raspberryPi=0
         self.filePath=""
+        self.locked=0
 
         #Main window
         customtkinter.set_appearance_mode("light")
@@ -66,7 +67,7 @@ class amabaGUI:
         text="Quit",
         width=80,
         height=30,
-        command=lambda: [pneumatic.stop_c_program(), pneumatic.stop_socket(),self.window.destroy(), printer.p.disconnect()],
+        command=self.quit,
         )
         self.modeBtn.pack(side=RIGHT, anchor=NE, padx=0,pady=0)
 
@@ -88,8 +89,6 @@ class amabaGUI:
         switch_height=25,
         )
         #self.automaticBtn.pack(padx=10,pady=10)
-
-        
 
         self.gcode = customtkinter.CTkButton(
         master =self.title_frame,
@@ -368,16 +367,69 @@ class amabaGUI:
         width=80,
         height=30,
         )
-
+        """
+        self.stop_btn = customtkinter.CTkButton(
+        master =self.gcode_frame,
+        text="Stop print",
+        command=self.stop_print,
+        width=80,
+        height=30,
+        )
+        """
         self.window.after(2000,self.send_loop) 
         #we start a loop to regularly send info to the ethercat, 
         #send message when the slides bar are moved is giving to many request = crash
         self.window.mainloop()
     
+    """
+    def stop_print(self):
+        pneumatic.stop_print()
+        printer.stop_print()
+
+        #on ferme tt les fenêtres pour obliger à faire un homing
+        self.gcode_frame.forget_pack()
+        pass
+    """
+    def quit(self):
+        pneumatic.stop_c_program()
+        pneumatic.stop_socket()
+        printer.kill_thread()
+        if printer.homed:
+            printer.p.disconnect()
+        self.window.destroy() 
+
+
+    def lock_gui(self):
+        print("lock/unlock GUI")
+        if printer.on_going_print:
+            self.on_ato.configure(state="disabled")
+            self.on_cart.configure(state="disabled")
+            self.on_point.configure(state="disabled")
+            self.start_gcode.configure(state="disabled")
+            self.p_line.configure(state="disabled")
+            self.n_line.configure(state="disabled")
+            self.draw_line.configure(state="disabled")
+            self.test_sub_btn.configure(state="disabled")
+            self.locked=1
+        else:
+            self.on_ato.configure(state="normal")
+            self.on_cart.configure(state="normal")
+            self.on_point.configure(state="normal")
+            self.start_gcode.configure(state="normal")
+            self.p_line.configure(state="normal")
+            self.n_line.configure(state="normal")
+            self.draw_line.configure(state="normal")
+            self.test_sub_btn.configure(state="normal")
+            self.locked=0
+
+
+
     def send_loop(self):
         #could be improved by sending only if changed happened on the slidding bars
         self.update() #on peut mettre tout le monde à jour ?
         pneumatic.sendToClient(1)
+        if self.locked!=printer.on_going_print:
+            self.lock_gui()
         self.window.after(500,self.send_loop)
 
 
@@ -412,10 +464,7 @@ class amabaGUI:
 
     def run_test_sub(self):
         if self.test_sent_parameters():
-            printer.pneumatic_inst=pneumatic
-            t1= threading.Thread(target=printer.test_sample)
-            t1.start()
-            print("we moved passed the thread")
+            printer.test_sample(pneumatic)
 
     def send_gcode(self):
         if self.test_sent_parameters():
@@ -439,6 +488,7 @@ class amabaGUI:
         self.gcode_frame.pack(padx=10,pady=10)
         self.filebtn.grid(row = 3, column = 0, columnspan = 2, pady=5)
         self.start_gcode.grid(row = 4, column = 0, columnspan = 2, pady=5)
+        #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
     def test_depose(self):
         if printer.homed==0:
@@ -456,6 +506,7 @@ class amabaGUI:
         self.p_line.grid(row = 3, column = 0, padx=10)
         self.draw_line.grid(row = 3, column = 1,padx=10)
         self.n_line.grid(row = 3, column = 2,padx=10)
+        #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
     def test_substrat(self):
         if printer.homed==0:
@@ -472,6 +523,7 @@ class amabaGUI:
         #make the send_g-code frame display
         self.gcode_frame.pack(padx=10,pady=10)
         self.test_sub_btn.grid(row = 3, column = 0, columnspan = 2, pady=10,padx=10)
+        #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
 
 
