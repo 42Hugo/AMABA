@@ -16,7 +16,10 @@ from pneumatic_control import Pneumatic
 
 class amabaGUI:
 
-    def __init__(self):
+    def __init__(self,pneumatic,printer):
+
+        self.pneumatic=pneumatic
+        self.printer=printer
 
         #if 1 the GUI will adapt to toutch screen and size
         self.raspberryPi=0
@@ -160,7 +163,7 @@ class amabaGUI:
         height=20,
         number_of_steps=17,
         )
-        self.cart_bar.set(pneumatic.c_cart)
+        self.cart_bar.set(self.pneumatic.c_cart)
 
         self.show_consi = customtkinter.CTkLabel(
         master = self.cartouche_frame,
@@ -178,7 +181,7 @@ class amabaGUI:
 
         self.show_press = customtkinter.CTkLabel(
         master = self.cartouche_frame,
-        text=pneumatic.p_cart,
+        text=self.pneumatic.p_cart,
         #command = self.next_turn
         )
         #self.show_press.pack(padx=10,pady=0)
@@ -214,7 +217,7 @@ class amabaGUI:
 
         self.show_pressP = customtkinter.CTkLabel(
         master = self.pointeau_frame,
-        text=pneumatic.p_point,
+        text=self.pneumatic.p_point,
         #command = self.next_turn
         )
         #self.show_pressP.pack(padx=10,pady=0)
@@ -254,7 +257,7 @@ class amabaGUI:
         height=20,
         number_of_steps=20,
         )
-        self.ato_bar.set(pneumatic.c_ato)
+        self.ato_bar.set(self.pneumatic.c_ato)
 
         self.show_consiA= customtkinter.CTkLabel(
         master = self.atom_frame,
@@ -272,7 +275,7 @@ class amabaGUI:
 
         self.show_pressA = customtkinter.CTkLabel(
         master = self.atom_frame,
-        text=pneumatic.p_ato,
+        text=self.pneumatic.p_ato,
         #command = self.next_turn
         )
         #self.show_pressA.pack(padx=10,pady=0)
@@ -339,7 +342,7 @@ class amabaGUI:
         self.n_line = customtkinter.CTkButton(
         master =self.gcode_frame,
         text="Next Position",
-        command = lambda: [self.test_sent_parameters(),printer.next_position()],
+        command = lambda: [self.test_sent_parameters(),self.printer.next_position()],
         width=80,
         height=30,
         )
@@ -347,7 +350,7 @@ class amabaGUI:
         self.p_line = customtkinter.CTkButton(
         master =self.gcode_frame,
         text="Previous Position",
-        command = lambda: [self.test_sent_parameters(),printer.prev_position()],
+        command = lambda: [self.test_sent_parameters(),self.printer.prev_position()],
         width=80,
         height=30,
         )
@@ -355,7 +358,7 @@ class amabaGUI:
         self.draw_line = customtkinter.CTkButton(
         master =self.gcode_frame,
         text="Print Line",
-        command=lambda: [self.test_sent_parameters(), printer.print_line(pneumatic)],
+        command=lambda: [self.test_sent_parameters(), self.printer.print_line()],
         width=80,
         height=30,
         )
@@ -391,17 +394,17 @@ class amabaGUI:
         pass
     """
     def quit(self):
-        pneumatic.stop_c_program()
-        pneumatic.stop_socket()
-        printer.kill_thread()
-        if printer.homed:
-            printer.p.disconnect()
+        self.pneumatic.stop_c_program()
+        self.pneumatic.stop_socket()
+        self.printer.kill_thread()
+        if self.printer.homed:
+            self.printer.p.disconnect()
         self.window.destroy() 
 
 
     def lock_gui(self):
         print("lock/unlock GUI")
-        if printer.on_going_print:
+        if self.printer.on_going_print:
             self.on_ato.configure(state="disabled")
             self.on_cart.configure(state="disabled")
             self.on_point.configure(state="disabled")
@@ -427,8 +430,8 @@ class amabaGUI:
     def send_loop(self):
         #could be improved by sending only if changed happened on the slidding bars
         self.update() #on peut mettre tout le monde à jour ?
-        pneumatic.sendToClient(1)
-        if self.locked!=printer.on_going_print:
+        self.pneumatic.sendToClient(1)
+        if self.locked!=self.printer.on_going_print:
             self.lock_gui()
         self.window.after(500,self.send_loop)
 
@@ -442,20 +445,20 @@ class amabaGUI:
     def test_sent_parameters(self):
         #here check if parameters input by user are valide and disply when needed an error
         if self.z_layer_v.get()!='':
-            if float(self.z_layer_v.get())>=printer.min_z and float(self.z_layer_v.get())<=printer.max_z:
-                printer.z=float(self.z_layer_v.get())
+            if float(self.z_layer_v.get())>=self.printer.min_z and float(self.z_layer_v.get())<=self.printer.max_z:
+                self.printer.z=float(self.z_layer_v.get())
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a Z higher than 1mm")
                 return 0
         if self.t_substrat_v.get()!='':
-            if float(self.t_substrat_v.get())>=printer.min_sub and float(self.t_substrat_v.get())<=printer.max_sub:
-                printer.sub=float(self.t_substrat_v.get())
+            if float(self.t_substrat_v.get())>=self.printer.min_sub and float(self.t_substrat_v.get())<=self.printer.max_sub:
+                self.printer.sub=float(self.t_substrat_v.get())
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a substrat thicker than 0mm")
                 return 0
         if self.speed_v.get()!='':
-            if float(self.speed_v.get())>=printer.min_speed and float(self.speed_v.get())<=printer.max_speed:
-                printer.speed=float(self.speed_v.get())
+            if float(self.speed_v.get())>=self.printer.min_speed and float(self.speed_v.get())<=self.printer.max_speed:
+                self.printer.speed=float(self.speed_v.get())
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a speed higher than 500")
                 return 0
@@ -464,20 +467,20 @@ class amabaGUI:
 
     def run_test_sub(self):
         if self.test_sent_parameters():
-            printer.test_sample(pneumatic)
+            self.printer.test_sample()
 
     def send_gcode(self):
         if self.test_sent_parameters():
             if self.filePath.endswith(".gcode"):
-                printer.load_gcode(self.filePath)
-                printer.get_line_and_modify(pneumatic)
+                self.printer.load_gcode(self.filePath)
+                self.printer.get_line_and_modify(self.pneumatic)
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a g-code file")
 
     def gcodeF(self):
-        if printer.homed==0:
+        if self.printer.homed==0:
             tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
-            printer.connect()#connect and do calibration
+            self.printer.connect()#connect and do calibration
         
         #hide not needed btns
         self.p_line.grid_forget()
@@ -491,9 +494,9 @@ class amabaGUI:
         #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
     def test_depose(self):
-        if printer.homed==0:
+        if self.printer.homed==0:
             tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
-            printer.connect()#connect and do calibration
+            self.printer.connect()#connect and do calibration
         # mettre a 6mm la valeur de base du sample
 
         #hide uneeded btn
@@ -509,9 +512,9 @@ class amabaGUI:
         #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
     def test_substrat(self):
-        if printer.homed==0:
+        if self.printer.homed==0:
             tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
-            printer.connect()#connect and do calibration
+            self.printer.connect()#connect and do calibration
         
         #hide not needed btns
         self.p_line.grid_forget()
@@ -529,73 +532,73 @@ class amabaGUI:
 
     def onF(self,case):
         if case == "p":
-            if pneumatic.st_point:
+            if self.pneumatic.st_point:
                 self.on_point.configure(text = "OFF")
-                pneumatic.st_point = 0
+                self.pneumatic.st_point = 0
             else:
                 self.on_point.configure(text = "ON")
-                pneumatic.st_point = 1
+                self.pneumatic.st_point = 1
         elif case=="c":
-            if pneumatic.st_cart:
+            if self.pneumatic.st_cart:
                 self.on_cart.configure(text = "OFF")
-                pneumatic.st_cart = 0
+                self.pneumatic.st_cart = 0
             else:
                 self.on_cart.configure(text = "ON")
-                pneumatic.st_cart = 1
+                self.pneumatic.st_cart = 1
         elif case=="a":
-            if pneumatic.st_Ato:
+            if self.pneumatic.st_Ato:
                 self.on_ato.configure(text = "OFF")
-                pneumatic.st_Ato = 0
+                self.pneumatic.st_Ato = 0
             else:
                 self.on_ato.configure(text = "ON")
-                pneumatic.st_Ato = 1
+                self.pneumatic.st_Ato = 1
         #pneumatic.sendToClient(1)
     def autoF(self):
-        if pneumatic.automatic:
+        if self.pneumatic.automatic:
             self.automaticBtn.configure(text = "Manual")
-            pneumatic.automatic = 0
+            self.pneumatic.automatic = 0
         else:
             self.automaticBtn.configure(text = "Automatic")
-            pneumatic.automatic = 1
+            self.neumatic.automatic = 1
 
     def sliderFc(self, value):
-        pneumatic.c_cart=round(value,2)
-        self.show_consi.configure(text=pneumatic.c_cart)
+        self.pneumatic.c_cart=round(value,2)
+        self.show_consi.configure(text=self.pneumatic.c_cart)
         #pneumatic.sendToClient(1)
 
     def sliderFa(self, value):
-        pneumatic.c_ato=round(value,2)
-        self.show_consiA.configure(text=pneumatic.c_ato)
+        self.pneumatic.c_ato=round(value,2)
+        self.show_consiA.configure(text=self.pneumatic.c_ato)
         #pneumatic.sendToClient(1)
     
     def update(self):
         #print("we re updating the GUI")
         #update the labels
-        self.show_consi.configure(text=pneumatic.c_cart)
-        self.show_consiA.configure(text=pneumatic.c_ato)
+        self.show_consi.configure(text=self.pneumatic.c_cart)
+        self.show_consiA.configure(text=self.pneumatic.c_ato)
 
         #update the slides
-        self.cart_bar.set(pneumatic.c_cart)
-        self.ato_bar.set(pneumatic.c_ato)
+        self.cart_bar.set(self.pneumatic.c_cart)
+        self.ato_bar.set(self.pneumatic.c_ato)
 
         #update the pressure
-        self.show_pressA.configure(text=pneumatic.p_ato)
-        self.show_press.configure(text=pneumatic.p_cart)
+        self.show_pressA.configure(text=self.pneumatic.p_ato)
+        self.show_press.configure(text=self.pneumatic.p_cart)
 
         #update the on/off
-        if pneumatic.st_point:
+        if self.pneumatic.st_point:
             self.on_point.configure(text = "ON")
             self.on_point.select()
         else:
             self.on_point.configure(text = "OFF")
             self.on_point.deselect()
-        if pneumatic.st_cart:
+        if self.pneumatic.st_cart:
             self.on_cart.configure(text = "ON")
             self.on_cart.select()
         else:
             self.on_cart.configure(text = "OFF")
             self.on_cart.deselect()
-        if pneumatic.st_Ato:
+        if self.pneumatic.st_Ato:
             self.on_ato.configure(text = "ON")
             self.on_ato.select()
         else:
@@ -610,6 +613,3 @@ class amabaGUI:
     #    self.window.after_cancel(self.update)
 
 
-pneumatic=Pneumatic()
-printer = Printer()
-GUI = amabaGUI()
