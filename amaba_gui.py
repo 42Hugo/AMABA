@@ -311,7 +311,7 @@ class amabaGUI:
 
         self.speed=customtkinter.CTkLabel(
         master = self.gcode_frame,
-        text="Speed [mm/s]",
+        text="Speed [mm/min]",
         )
         self.speed.grid(row = 2, column = 0, pady = 2, padx=2)
 
@@ -370,29 +370,30 @@ class amabaGUI:
         width=80,
         height=30,
         )
-        """
-        self.stop_btn = customtkinter.CTkButton(
+
+        self.next_layer_btn = customtkinter.CTkButton(
         master =self.gcode_frame,
-        text="Stop print",
-        command=self.stop_print,
+        text="next layer",
+        command=self.print_next_layer,
         width=80,
         height=30,
         )
-        """
+
+        self.homing_btn = customtkinter.CTkButton(
+        master =self.gcode_frame,
+        text="Homing",
+        command=self.printer.homing,
+        width=80,
+        height=30,
+        )
         self.window.after(2000,self.send_loop) 
         #we start a loop to regularly send info to the ethercat, 
         #send message when the slides bar are moved is giving to many request = crash
         self.window.mainloop()
     
-    """
-    def stop_print(self):
-        pneumatic.stop_print()
-        printer.stop_print()
 
-        #on ferme tt les fenêtres pour obliger à faire un homing
-        self.gcode_frame.forget_pack()
-        pass
-    """
+    def print_next_layer(self):
+        self.printer.go_next_layer=1
     def quit(self):
         self.pneumatic.stop_c_program()
         self.pneumatic.stop_socket()
@@ -472,6 +473,7 @@ class amabaGUI:
     def send_gcode(self):
         if self.test_sent_parameters():
             if self.filePath.endswith(".gcode"):
+                self.printer.multilayer_print=1
                 self.printer.load_gcode(self.filePath)
                 self.printer.get_line_and_modify(self.pneumatic)
             else:
@@ -486,11 +488,16 @@ class amabaGUI:
         self.p_line.grid_forget()
         self.draw_line.grid_forget()
         self.n_line.grid_forget()
+        self.speed.grid_forget()
+        self.speed_v.grid_forget()
 
         #make the send_g-code frame display
         self.gcode_frame.pack(padx=10,pady=10)
+        self.homing_btn.grid(row = 0, column = 1, columnspan = 2, pady=5)
         self.filebtn.grid(row = 3, column = 0, columnspan = 2, pady=5)
         self.start_gcode.grid(row = 4, column = 0, columnspan = 2, pady=5)
+        self.next_layer_btn.grid(row = 5, column = 0, columnspan = 2, pady=5)
+
         #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
     def test_depose(self):
@@ -509,6 +516,9 @@ class amabaGUI:
         self.p_line.grid(row = 3, column = 0, padx=10)
         self.draw_line.grid(row = 3, column = 1,padx=10)
         self.n_line.grid(row = 3, column = 2,padx=10)
+        self.speed.grid(row = 2, column = 0, pady = 2, padx=2)
+        self.speed_v.grid(row = 2, column = 1, pady = 2, padx=2)
+        self.homing_btn.grid(row = 0, column = 1, columnspan = 2, pady=5)
         #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
     def test_substrat(self):
@@ -526,6 +536,9 @@ class amabaGUI:
         #make the send_g-code frame display
         self.gcode_frame.pack(padx=10,pady=10)
         self.test_sub_btn.grid(row = 3, column = 0, columnspan = 2, pady=10,padx=10)
+        self.speed.grid(row = 2, column = 0, pady = 2, padx=2)
+        self.speed_v.grid(row = 2, column = 1, pady = 2, padx=2)
+        self.homing_btn.grid(row = 0, column = 1, columnspan = 2, pady=5)
         #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
 

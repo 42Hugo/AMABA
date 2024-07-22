@@ -43,7 +43,10 @@ class Printer():
 
 
         #self.pause=0
-        self.on_going_print=0
+        self.on_going_print=0 #active for any print including small test and line
+        self.multilayer_print=0#active only when a g-code is uploaded and sent
+        self.go_next_layer=0#changed by a timer or user input
+        self.drying_time=42#we can put a max at 59 minutes or it will be decided by the user
         #self.self.pneumatic=None
         self.mutex=threading.Lock()
 
@@ -61,22 +64,6 @@ class Printer():
         self.thread_state=0
         #self.t_gcode.join()
     
-    """
-    def stop_print(self):
-        self.p.send_now("M410")
-        self.pause=1
-        self.mutex.acquire()
-        try:
-            self.pile_gcode=[]
-            self.pile_count=[]
-            self.pile_depose=[]
-            self.pile_depose.append(0)
-        finally:
-            self.mutex.release()
-        self.pause=0
-        self.homed=0
-    """
-    
     def send_gcode_routine(self):
 
         while True:
@@ -84,6 +71,7 @@ class Printer():
                 break
             
             if self.pile_gcode!=[]:
+                self.go_next_layer=0
                 if not self.on_going_print:
                     self.on_going_print=1
                 
@@ -93,7 +81,7 @@ class Printer():
                     
                     depose=self.pile_depose[0] #update pneumatic state
                     self.update(1,depose)
-                    layer_count=self.pile_count[0]+1
+                    #layer_count=self.pile_count[0]+1
                     layer=self.pile_gcode[0]
 
                     while layer!=[]:
@@ -115,20 +103,17 @@ class Printer():
                     #print("we sent the orders")
                 finally:
                     self.mutex.release()
+                    if self.multilayer_print!=0 and not depose:
+                        while self.go_next_layer!=0:
+                            #time.sleep()#we can maybe just put inside the number of minutes in a time.sleep
+                            time.sleep(0.5)
                 # Libere le mutex sur PILE
-                """
-                print("the count:")
-                print(layer_count)
-                while self.flag!=(layer_count):
-                    if not self.thread_state:
-                        break
-                    time.sleep(0.1)#needed to let the GUI update
-                    pass
-                self.flag=0
-                """
             else:
                 if self.on_going_print:
                     self.on_going_print=0
+                
+                if self.multilayer_print:
+                    self.multilayer_print=0
             time.sleep(0.1)#needed to let the GUI update
 
         
@@ -327,6 +312,11 @@ class Printer():
         else:
             print("can't print layer height or z height not valid")
 
+    def homing(self):
+        self.p.send_now("G28 W")
+        self.p.send_now("G1 Z10") 
+        self.homed=1
+
     def connect(self):
         # Start communication with the printer
         self.p = printcore('/dev/ttyACM0', 115200)
@@ -339,7 +329,5 @@ class Printer():
         while not self.p.online:
             time.sleep(0.1)
         
-        self.p.send_now("G28 W")
-        self.p.send_now("G1 Z10") 
-        self.homed=1
+        self.homing()
         return 
