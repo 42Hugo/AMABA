@@ -3,7 +3,7 @@ AMABA
 
 AMABA: Additive Manufacturing of Aqueous Phase Material-Based Actuators
 
-This repository provides an intuitive Graphical User Interface (GUI) for testing and experimenting with the additive manufacturing of aqueous phase materials. The project is focused on using Pullulan solutions but can also be adapted for other viscous materials.
+This repository provides an intuitive Graphical User Interface (GUI) for testing and experimenting with the additive manufacturing of aqueous phase materials.
 
 Features
 --------

@@ -414,6 +414,7 @@ class amabaGUI:
             self.n_line.configure(state="disabled")
             self.draw_line.configure(state="disabled")
             self.test_sub_btn.configure(state="disabled")
+            self.homing_btn.configure(state="disabled")
             self.locked=1
         else:
             self.on_ato.configure(state="normal")
@@ -424,6 +425,7 @@ class amabaGUI:
             self.n_line.configure(state="normal")
             self.draw_line.configure(state="normal")
             self.test_sub_btn.configure(state="normal")
+            self.homing_btn.configure(state="normal")
             self.locked=0
 
 
@@ -475,7 +477,7 @@ class amabaGUI:
             if self.filePath.endswith(".gcode"):
                 self.printer.multilayer_print=1
                 self.printer.load_gcode(self.filePath)
-                self.printer.get_line_and_modify(self.pneumatic)
+                self.printer.get_line_and_modify()
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a g-code file")
 
@@ -490,10 +492,11 @@ class amabaGUI:
         self.n_line.grid_forget()
         self.speed.grid_forget()
         self.speed_v.grid_forget()
+        self.test_sub_btn.grid_forget()
 
         #make the send_g-code frame display
         self.gcode_frame.pack(padx=10,pady=10)
-        self.homing_btn.grid(row = 0, column = 1, columnspan = 2, pady=5)
+        self.homing_btn.grid(row = 5, column = 1, columnspan = 2, pady=5)
         self.filebtn.grid(row = 3, column = 0, columnspan = 2, pady=5)
         self.start_gcode.grid(row = 4, column = 0, columnspan = 2, pady=5)
         self.next_layer_btn.grid(row = 5, column = 0, columnspan = 2, pady=5)
@@ -518,7 +521,7 @@ class amabaGUI:
         self.n_line.grid(row = 3, column = 2,padx=10)
         self.speed.grid(row = 2, column = 0, pady = 2, padx=2)
         self.speed_v.grid(row = 2, column = 1, pady = 2, padx=2)
-        self.homing_btn.grid(row = 0, column = 1, columnspan = 2, pady=5)
+        self.homing_btn.grid(row = 5, column = 1, columnspan = 2, pady=5)
         #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
     def test_substrat(self):
@@ -538,7 +541,7 @@ class amabaGUI:
         self.test_sub_btn.grid(row = 3, column = 0, columnspan = 2, pady=10,padx=10)
         self.speed.grid(row = 2, column = 0, pady = 2, padx=2)
         self.speed_v.grid(row = 2, column = 1, pady = 2, padx=2)
-        self.homing_btn.grid(row = 0, column = 1, columnspan = 2, pady=5)
+        self.homing_btn.grid(row = 5, column = 1, columnspan = 2, pady=5)
         #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
 

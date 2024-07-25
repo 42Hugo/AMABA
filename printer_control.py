@@ -52,7 +52,7 @@ class Printer():
 
         self.pile_gcode = []
         #self.pile_pneumatic=[]
-        self.pile_count=[]
+        self.pile_change_layer=[]
         self.pile_depose=[]
         self.pile_depose.append(0)
         self.thread_state=1
@@ -80,8 +80,8 @@ class Printer():
                     #send new orders
                     
                     depose=self.pile_depose[0] #update pneumatic state
+                    change_layer=self.pile_change_layer[0]
                     self.update(1,depose)
-                    #layer_count=self.pile_count[0]+1
                     layer=self.pile_gcode[0]
 
                     while layer!=[]:
@@ -97,16 +97,20 @@ class Printer():
 
                     #clean what you just sent
                     self.pile_gcode.pop(0)
-                    self.pile_count.pop(0)
+                    self.pile_change_layer.pop(0)
                     self.pile_depose.pop(0)
 
                     #print("we sent the orders")
                 finally:
                     self.mutex.release()
-                    if self.multilayer_print!=0 and not depose:
-                        while self.go_next_layer!=0:
+                    if change_layer:
+                        print("waiting for next layer order")
+                        while self.go_next_layer==0:
+                            if not self.thread_state:#don't forget to break if user quit
+                                break
                             #time.sleep()#we can maybe just put inside the number of minutes in a time.sleep
                             time.sleep(0.5)
+                        self.go_next_layer=0
                 # Libere le mutex sur PILE
             else:
                 if self.on_going_print:
@@ -125,8 +129,8 @@ class Printer():
         try:
             self.pile_gcode.append(print_data[0])
             self.pile_depose.append(print_data[1])
-            self.pile_count.append(print_data[2])
-            print("we added to the pile")
+            self.pile_change_layer.append(print_data[2])
+            #print("we added to the pile")
         finally:
             self.mutex.release()
         # Libere le mutex sur PILE
@@ -137,7 +141,7 @@ class Printer():
         current_response = line
         #print(f"Received: {line}")
         if "ok" in line:
-            print(f"Received: {line}")
+            #print(f"Received: {line}")
             self.flag+=1
 
     
@@ -168,19 +172,23 @@ class Printer():
         depose = 0
         new_layer = 0
         layer=[]
-        count=0
         self.flag=0
         self.pause=0
+        change_layer=0
 
         self.pneumatic.sendToClient(1)#should turn on the pressure but depose is at 0 so nothing else
 
         for data in self.gcode_lines:
-            modified_line = data.split(';')[0]
 
+            if data.startswith(';AFTER_LAYER_CHANGE'):#after layer change is when the extruder is off
+                change_layer=1
+
+            modified_line = data.split(';')[0]
             if (data.startswith('M140') or data.startswith('M862') or 
                 data.startswith('M104') or data.startswith('M190') or 
                 data.startswith('M109') or data.startswith('\n') or
-                data.startswith('G28')):
+                data.startswith('G28') or data.startswith(';') or 
+                data.startswith('G80')):
                 continue
             elif data.startswith('G1'):
                 if 'E' in data:
@@ -202,24 +210,24 @@ class Printer():
             if not new_layer:
                 #still working on the same layer, no need to change the pneumatic
                 layer.append(modified_line)
-                count+=1
                 
             else:
                 #new layer, pneumatic will have to change (turn on or off)
                 layer.append("M400")
-                print_data=[layer,depose, count]
-                print(print_data)
+                print_data=[layer,depose, change_layer]
+                #print(print_data)
                 self.add_to_pile(print_data)
                 layer = []
                 layer.append(modified_line)
                 new_layer=0
-                count=1
+                change_layer=0
+
                 
 
         layer.append("M400")
-        print_data=[layer,depose,count]
+        print_data=[layer,depose,change_layer]
         self.add_to_pile(print_data)
-        print(print_data)
+        #print(print_data)
         return
 
     def load_gcode(self, path):
@@ -257,8 +265,8 @@ class Printer():
             self.get_line_and_modify()
         else:
             print("can't print layer height or z height not valid")
-    """
-    def test_sample(self, self.pneumatic):
+    
+    def test_sample(self):
         ydist=self.ydist
         if (self.z>=self.min_z and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
             self.z=self.z-1.3#with the current system the nozle is 1mm higher 
@@ -277,7 +285,7 @@ class Printer():
             gcode_string=gcode_string +"G1 X"+str(self.xdist-20)+ " Y"+ str(ydist) + " F1000.000"+ "\n" #move out so i can take a pricture
             buf=io.StringIO(gcode_string)
             self.gcode_lines=buf.readlines()
-            self.get_line_and_modify(self.pneumatic)
+            self.get_line_and_modify()
         else:
             print("can't print layer height or z height not valid")
     """
@@ -311,7 +319,7 @@ class Printer():
             self.get_line_and_modify()
         else:
             print("can't print layer height or z height not valid")
-
+    """
     def homing(self):
         self.p.send_now("G28 W")
         self.p.send_now("G1 Z10") 
