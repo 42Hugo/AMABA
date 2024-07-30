@@ -17,18 +17,20 @@ class Printer():
         self.current_response=""
         self.gcode_lines=""
         self.homed=0
-        self.speed=4000 #printing speed, keep g-code info if 0
-        self.z=1 #printing height, keep the g-code info if 0
+        self.speed=500 #printing speed, 
+        self.z=1 #printing height
         
 
         #substrat infos
-        self.ydist=15 #changing in the for loop, start y position
-        self.line=self.ydist#y position of the test line
-        self.xdist=120
+        self.ydist=15 #start y position for substrat test 
+        self.line=self.ydist #moving y position to draw lines 1 by 1
+        #self.xsize=120 
         #sample_space=30
-        self.sample_size=70
+        self.sample_size_x=70
+        self.sample_size_y=120
         self.line_space=10
-        self.sub=0 #height of the substrat, 0 if no substrat
+        self.x_space_on_borders=5#space left without print when testing lines on each side
+        self.sub=6 #height of the substrat, 0 if no substrat
 
 
         #safety values
@@ -38,15 +40,15 @@ class Printer():
         self.max_sub=50
         self.min_speed=500
         self.max_speed=15000
-        self.bed_max_y=180#check max safe value
-        self.bed_max_x=160
+        self.bed_max_y=250#check max safe value
+        self.bed_max_x=210
+        self.z_offset=1.3#it's negativ her, difference with the 0 of the printer 
 
 
-        #self.pause=0
+        self.stop=0
         self.on_going_print=0 #active for any print including small test and line
         self.multilayer_print=0#active only when a g-code is uploaded and sent
         self.go_next_layer=0#changed by a timer or user input
-        self.drying_time=42#we can put a max at 59 minutes or it will be decided by the user
         #self.self.pneumatic=None
         self.mutex=threading.Lock()
 
@@ -56,8 +58,9 @@ class Printer():
         self.pile_depose=[]
         self.pile_depose.append(0)
         self.thread_state=1
-        self.t_gcode= threading.Thread(target=self.send_gcode_routine)
-        self.t_gcode.start()
+        self.wait_minutes=60
+        #self.t_gcode= threading.Thread(target=self.send_gcode_routine)
+        #self.t_gcode.start()
     
     def kill_thread(self):
         print("we killed the thread")
@@ -69,6 +72,12 @@ class Printer():
         while True:
             if not self.thread_state:
                 break
+
+            if not self.stop:
+                self.pile_gcode=[]
+                self.pile_change_layer=[]
+                self.pile_depose=[]
+                #empty every array to do something else
             
             if self.pile_gcode!=[]:
                 self.go_next_layer=0
@@ -85,12 +94,16 @@ class Printer():
                     layer=self.pile_gcode[0]
 
                     while layer!=[]:
+                        if not self.stop:
+                                continue
                         self.p.send_now(layer[0])  #send to printer
                         layer.pop(0)
 
                         while self.flag!=1:
                             if not self.thread_state:
                                 break
+                            if not self.stop:
+                                continue
                             time.sleep(0.1)#needed to let the GUI update
                     
                         self.flag=0
@@ -105,13 +118,23 @@ class Printer():
                     self.mutex.release()
                     if change_layer:
                         print("waiting for next layer order")
-                        while self.go_next_layer==0:
-                            if not self.thread_state:#don't forget to break if user quit
+                        self.p.send_now("G91")#change to relativ coordinate
+                        self.p.send_now("G1 Z3")#go up 3mm in z to let dry in peace
+
+                        total_wait_time = self.wait_minutes * 60#self.wait_minutes given by user input
+                        elapsed_time = 0
+                        interval = 0.5
+                        while self.go_next_layer == 0 and elapsed_time < total_wait_time:
+                            if not self.thread_state:  # Check if user quit
                                 break
-                            #time.sleep()#we can maybe just put inside the number of minutes in a time.sleep
-                            time.sleep(0.5)
+                            if not self.stop:
+                                continue
+                            time.sleep(interval)
+                            elapsed_time += interval
+
+                        self.p.send_now("G1 Z-3")#go back 3mm lower
+                        self.p.send_now("G90")#back to absolute coordinate
                         self.go_next_layer=0
-                # Libere le mutex sur PILE
             else:
                 if self.on_going_print:
                     self.on_going_print=0
@@ -173,7 +196,7 @@ class Printer():
         new_layer = 0
         layer=[]
         self.flag=0
-        self.pause=0
+        self.stop=0
         change_layer=0
 
         self.pneumatic.sendToClient(1)#should turn on the pressure but depose is at 0 so nothing else
@@ -184,11 +207,13 @@ class Printer():
                 change_layer=1
 
             modified_line = data.split(';')[0]
-            if (data.startswith('M140') or data.startswith('M862') or 
-                data.startswith('M104') or data.startswith('M190') or 
+            #to block homing, hotend temperature, comment, intro line (intro line can be deleted from slicer directly, here is just a security)
+            if (data.startswith('M862') or data.startswith('M104')or 
                 data.startswith('M109') or data.startswith('\n') or
                 data.startswith('G28') or data.startswith(';') or 
-                data.startswith('G80')):
+                data.startswith('G80') or data.startswith('G1 Z0.2 F720')or 
+                data.endswith('G1 Z0.3 F720') or
+                data.endswith('go outside print area') or data.endswith('intro line')):
                 continue
             elif data.startswith('G1'):
                 if 'E' in data:
@@ -230,6 +255,9 @@ class Printer():
         #print(print_data)
         return
 
+    def stop_print(self):
+        self.stop=1
+
     def load_gcode(self, path):
         # Load the G-code file
         with open(path, 'r') as file_object:
@@ -241,25 +269,25 @@ class Printer():
         if self.line<(self.bed_max_y-self.line_space):
             self.line+=self.line_space
         self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
-        self.p.send_now("G1 X"+str(self.xdist)+ " Y"+str(self.line)+" F1000.000")
+        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F1000.000")
 
     def prev_position(self):
-        if self.line>=(self.ydist +self.line_space):
+        if self.line>(self.ydist +self.line_space):
             self.line-=self.line_space
         self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
-        self.p.send_now("G1 X"+str(self.xdist)+ " Y"+str(self.line)+" F1000.000")
+        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F1000.000")
 
     def print_line(self):
         if (self.z>=self.min_z and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
-            self.z=self.z-1.3#with the current system the nozle is 1mm higher 
+            self.z=self.z-self.z_offset#with the current system the nozle is 1.3mm higher 
 
             gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
-            gcode_string=gcode_string +"G1 X"+str(self.xdist)+ " Y"+str(self.line) +" F1000.000"+ "\n"
+            gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders)+ " Y"+str(self.line) +" F1000.000"+ "\n"
             gcode_string=gcode_string +"G1 Z"+str(self.z+self.sub) + "\n"
-            gcode_string=gcode_string +"G1 X "+str(self.xdist + self.sample_size) + " E22.4 F"+str(self.speed)+ "\n"
+            gcode_string=gcode_string +"G1 X "+str(self.bed_max_x-self.x_space_on_borders) + " E22.4 F"+str(self.speed)+ "\n"
             gcode_string=gcode_string +"G1 E-0.80000 F2100.00000 \n"
             gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+self.z)+ "\n"
-            gcode_string=gcode_string +"G1 X"+str(self.xdist)+ " Y"+str(self.line)+" F5000.000"
+            gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x)+ " Y"+str(self.line)+" F5000.000"
             buf=io.StringIO(gcode_string)
             self.gcode_lines=buf.readlines()
             self.get_line_and_modify()
@@ -269,57 +297,57 @@ class Printer():
     def test_sample(self):
         ydist=self.ydist
         if (self.z>=self.min_z and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
-            self.z=self.z-1.3#with the current system the nozle is 1mm higher 
+            self.z=self.z-self.z_offset#with the current system the nozle is 1mm higher 
             
 
             gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
             for i in range(0,10):
-                gcode_string=gcode_string +"G1 X"+str(self.xdist)+ " Y"+ str(ydist) + " F1000.000"+ "\n"
+                gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders)+ " Y"+ str(ydist) + " F1000.000"+ "\n"
                 gcode_string=gcode_string +"G1 Z"+str(self.z+self.sub) + "\n"
-                gcode_string=gcode_string +"G1 X "+str(self.xdist + self.sample_size) + " E22.4 F"+str(self.speed)+ "\n"
+                gcode_string=gcode_string +"G1 X "+str(self.bed_max_x-self.x_space_on_borders) + " E22.4 F"+str(self.speed)+ "\n"
                 gcode_string=gcode_string +"G1 E-0.80000 F2100.00000 \n"
                 gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+self.z)+ "\n"
                 if i%2==1:
-                        ydist+=2.5
+                        ydist+=2.5 #there is 2.5 mm space between each different texture on the tested sample
                 ydist+=self.line_space
-            gcode_string=gcode_string +"G1 X"+str(self.xdist-20)+ " Y"+ str(ydist) + " F1000.000"+ "\n" #move out so i can take a pricture
+            gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x-20)+ " Y"+ str(ydist) + " F1000.000"+ "\n" #move out so i can take a pricture
             buf=io.StringIO(gcode_string)
             self.gcode_lines=buf.readlines()
             self.get_line_and_modify()
         else:
             print("can't print layer height or z height not valid")
-    """
+    
+
     #fct pour faire une petite plaque 
-    def test_sample(self):
-        ydist=self.line
+    def test__full_rectangle(self):
+        ydist=self.line #will start the print depending on the current y position
         ywidth=10 #width of the rect
         width_depose=1
         cnt=int((ywidth/width_depose)/2)
 
         if (self.z>=self.min_z and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
-            self.z=self.z-1.3#with the current system the nozle is 1.3mm higher 
+            self.z=self.z-self.z_offset#with the current system the nozle is 1.3mm higher 
             
             
             gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
-            gcode_string=gcode_string +"G1 X"+str(self.xdist)+ " Y"+ str(ydist) + " F1000.000"+ "\n"
+            gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders)+ " Y"+ str(ydist) + " F1000.000"+ "\n"
             gcode_string=gcode_string +"G1 Z"+str(self.z+self.sub) + "\n"
-            gcode_string=gcode_string +"G1 X "+str(self.xdist + self.sample_size) + " E22.4 F"+str(self.speed)+ "\n"
+            gcode_string=gcode_string +"G1 X "+str(self.bed_max_x-self.x_space_on_borders) + " E22.4 F"+str(self.speed)+ "\n"
             gcode_string=gcode_string +"G1 Y"+ str(ydist+ywidth) +"\n"
-            gcode_string=gcode_string +"G1 X"+str(self.xdist-width_depose)+ "\n"
+            gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders-width_depose)+ "\n"
             for i in range (1,cnt+1):
                 gcode_string=gcode_string +"G1 Y"+ str(ydist+i*width_depose)+"\n"
-                gcode_string=gcode_string +"G1 X "+str(self.xdist + self.sample_size-i*width_depose)+"\n"
+                gcode_string=gcode_string +"G1 X "+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders + self.sample_size_x-i*width_depose)+"\n"
                 gcode_string=gcode_string +"G1 Y"+ str(ydist+ywidth-i*width_depose) +"\n"
-                gcode_string=gcode_string +"G1 X"+str(self.xdist+i*width_depose)+ "\n"
+                gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders+i*width_depose)+ "\n"
             gcode_string=gcode_string +"G1 E-0.80000 F2100.00000 \n"
             gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+self.z)+ "\n"
-            gcode_string=gcode_string +"G1 X"+str(self.xdist-20)+ " Y"+ str(ydist) + " F1000.000"+ "\n" #move out so i can take a picture
+            gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x-20)+ " Y"+ str(ydist) + " F1000.000"+ "\n" #move out so i can take a picture
             buf=io.StringIO(gcode_string)
             self.gcode_lines=buf.readlines()
             self.get_line_and_modify()
         else:
             print("can't print layer height or z height not valid")
-    """
     def homing(self):
         self.p.send_now("G28 W")
         self.p.send_now("G1 Z10") 
@@ -327,15 +355,15 @@ class Printer():
 
     def connect(self):
         # Start communication with the printer
-        self.p = printcore('/dev/ttyACM0', 115200)
+        #self.p = printcore('/dev/ttyACM0', 115200)
         self.flag = 0
         # Set the response callback
-        self.p.loud = True
-        self.p.recvcb = self.response_callback
+        #self.p.loud = True
+        #self.p.recvcb = self.response_callback
 
         # Wait until the printer is connected
-        while not self.p.online:
-            time.sleep(0.1)
+        #while not self.p.online:
+            #time.sleep(0.1)
         
-        self.homing()
+        #self.homing()
         return 

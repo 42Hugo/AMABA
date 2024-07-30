@@ -44,12 +44,45 @@ class amabaGUI:
         self.main_frame = customtkinter.CTkFrame(master = self.window)
         self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+        # Set column weight for proper alignment
+        self.main_frame.grid_columnconfigure(0, weight=1)  # Left column (control_frame)
+        self.main_frame.grid_columnconfigure(1, weight=0)  # Middle column (title_frame)
+        self.main_frame.grid_columnconfigure(2, weight=0)  # Empty space column
+        self.main_frame.grid_columnconfigure(3, weight=0)  # Right column (buttons)
+
+        # Set row weight for proper alignment
+        self.main_frame.grid_rowconfigure(0, weight=0)  # Top row (buttons)
+        self.main_frame.grid_rowconfigure(1, weight=0)  # Space between buttons
+        self.main_frame.grid_rowconfigure(2, weight=0)  # Middle row (title_frame)
+        self.main_frame.grid_rowconfigure(3, weight=0)  # Bottom row (control_frame)
+        self.main_frame.grid_rowconfigure(4, weight=1)  # bottom stays empty
+
+
+        self.quit_Btn = customtkinter.CTkButton(
+        master =self.main_frame,
+        text="Quit",
+        width=80,
+        height=30,
+        command=self.quit,
+        )
+        self.quit_Btn.grid(row=0,column=3, padx=5, pady=5, sticky ="n")
+
+        self.homing_btn = customtkinter.CTkButton(
+        master =self.main_frame,
+        text="Homing",
+        command=self.printer.homing,
+        width=80,
+        height=30,
+        )
+        self.homing_btn.grid(row=1,column=3, padx=5, pady=5, sticky ="n")
+
+
         
         #defining in grid every frame seperate frame
         self.control_frame = customtkinter.CTkFrame(master = self.main_frame)
-        self.control_frame.pack(padx=0,pady=0, side=LEFT, fill="y")
+        self.control_frame.grid(row=0,column=0, rowspan=10, padx=1, pady=1, sticky="w")
         self.title_frame = customtkinter.CTkFrame(master = self.main_frame, fg_color="transparent")
-        self.title_frame.pack(padx=10,pady=10,fil="both")
+        self.title_frame.grid(row=2,column=1, padx=5, pady=5, sticky="n")
         
 
         #sub frame for each pressure control element
@@ -61,19 +94,12 @@ class amabaGUI:
         self.atom_frame.pack(side=BOTTOM, pady=12,padx=10)
 
         #sub frame for each mode
-        self.gcode_frame= customtkinter.CTkFrame(master = self.main_frame, fg_color="transparent")
+        self.para_frame= customtkinter.CTkFrame(master = self.main_frame, fg_color="transparent")
         self.test_frame= customtkinter.CTkFrame(master = self.main_frame, fg_color="transparent")
         self.substrat_frame= customtkinter.CTkFrame(master = self.main_frame, fg_color="transparent")
+        self.print_frame= customtkinter.CTkFrame(master = self.main_frame, fg_color="transparent")
 
-        self.modeBtn = customtkinter.CTkButton(
-        master =self.title_frame,
-        text="Quit",
-        width=80,
-        height=30,
-        command=self.quit,
-        )
-        self.modeBtn.pack(side=RIGHT, anchor=NE, padx=0,pady=0)
-
+        
 
         #buttons for the Top frame
         self.title = customtkinter.CTkLabel(
@@ -82,16 +108,8 @@ class amabaGUI:
         font=("Roboto",40, "bold"),
         text_color="#3a7ebf",
         )
-        self.title.pack(padx=10,pady=10, side= TOP, anchor=CENTER)
+        self.title.grid(row=2,column=1, padx=5, pady=5,columnspan=3)
 
-        self.automaticBtn = customtkinter.CTkSwitch(
-        master =self.title_frame,
-        command = self.autoF,
-        text="Manual",
-        switch_width=40,
-        switch_height=25,
-        )
-        #self.automaticBtn.pack(padx=10,pady=10)
 
         self.gcode = customtkinter.CTkButton(
         master =self.title_frame,
@@ -100,7 +118,7 @@ class amabaGUI:
         width=100,
         height=40,
         )
-        self.gcode.pack(side= LEFT, padx=20,pady=10)
+        self.gcode.grid(row=3,column=1, padx=5, pady=5)
 
         self.depose = customtkinter.CTkButton(
         master =self.title_frame,
@@ -109,7 +127,7 @@ class amabaGUI:
         width=100,
         height=40,
         )
-        self.depose.pack(side= LEFT, padx=20,pady=10)
+        self.depose.grid(row=3,column=2, padx=5, pady=5)
 
         self.substrat = customtkinter.CTkButton(
         master =self.title_frame,
@@ -118,7 +136,7 @@ class amabaGUI:
         width=100,
         height=40,
         )
-        self.substrat.pack(side= LEFT, padx=20,pady=10)
+        self.substrat.grid(row=3,column=3, padx=5, pady=5)
 
         #frame control pneumatic 
         self.title_control = customtkinter.CTkLabel(
@@ -147,13 +165,6 @@ class amabaGUI:
         )
         self.on_cart.pack(padx=10,pady=5)
 
-        self.consi_cart = customtkinter.CTkLabel(
-        master = self.cartouche_frame,
-        text="Consigne",
-        #command = self.next_turn
-        )
-        #self.consi_cart.pack(padx=10,pady=0)
-
 
         self.cart_bar = customtkinter.CTkSlider(
         master = self.cartouche_frame,
@@ -172,23 +183,6 @@ class amabaGUI:
         self.show_consi.pack(padx=10,pady=0)
         self.cart_bar.pack(padx=10,pady=5)
 
-        self.press_cart = customtkinter.CTkLabel(
-        master = self.cartouche_frame,
-        text="Pression",
-        #command = self.next_turn
-        )
-        #self.press_cart.pack(padx=10,pady=0)
-
-        self.show_press = customtkinter.CTkLabel(
-        master = self.cartouche_frame,
-        text=self.pneumatic.p_cart,
-        #command = self.next_turn
-        )
-        #self.show_press.pack(padx=10,pady=0)
-
-
-
-
         #frame pointeau
         self.title_point = customtkinter.CTkLabel(
         master = self.pointeau_frame,
@@ -206,22 +200,6 @@ class amabaGUI:
         switch_height=25,
         )
         self.on_point.pack(padx=10,pady=5)
-
-        #We just have to pressure sensor so maybe not this one
-        self.press_point = customtkinter.CTkLabel(
-        master = self.pointeau_frame,
-        text="Pression",
-        #command = self.next_turn
-        )
-        #self.press_point.pack(padx=10,pady=0) 
-
-        self.show_pressP = customtkinter.CTkLabel(
-        master = self.pointeau_frame,
-        text=self.pneumatic.p_point,
-        #command = self.next_turn
-        )
-        #self.show_pressP.pack(padx=10,pady=0)
-
 
 
         #frame atmisation
@@ -266,126 +244,218 @@ class amabaGUI:
         self.show_consiA.pack(padx=10,pady=5)
         self.ato_bar.pack(padx=10,pady=5)
 
-        self.press_ato = customtkinter.CTkLabel(
-        master = self.atom_frame,
-        text="Pression",
-        #command = self.next_turn
-        )
-        #self.press_ato.pack(padx=10,pady=0)
+        
+        ###para frame
 
-        self.show_pressA = customtkinter.CTkLabel(
-        master = self.atom_frame,
-        text=self.pneumatic.p_ato,
-        #command = self.next_turn
-        )
-        #self.show_pressA.pack(padx=10,pady=0)
+        self.substrat_options = customtkinter.CTkOptionMenu(
+            master=self.para_frame, 
+            values=["95x95 PMMA", "120x70 PMMA", "60x60 PMMA", "other"],
+            command=self.choose_substrat)
+        self.substrat_options.set("95x95 PMMA")
+        self.substrat_options.grid(row = 0, column = 0, columnspan=5, pady = 5, padx=5)
 
-        ###gcode mode frame
-        self.t_substrat=customtkinter.CTkLabel(
-        master = self.gcode_frame,
-        text="Thickness of the substrat [mm] \n (0 being the prusa bed)",
-        )
-        self.t_substrat.grid(row = 0, column = 0, pady = 2, padx=2)
 
-        self.t_substrat_v=customtkinter.CTkEntry(
-            master = self.gcode_frame,
+
+
+        self.x_width_btn=customtkinter.CTkLabel(
+        master = self.para_frame,
+        text="width",
+        )
+        self.x_width_btn.grid(row = 1, column = 0, pady = 5, padx=5)
+
+        self.x_width=customtkinter.CTkEntry(
+            master = self.para_frame,
             width = 30,
             height=20,
-            placeholder_text="0",
+            placeholder_text=95,
         )
-        self.t_substrat_v.grid(row = 0, column = 1, pady = 2, padx=2)
+        self.x_width.grid(row = 1, column = 1, pady = 5, padx=5)
+
+
+
+        self.y_width_btn=customtkinter.CTkLabel(
+        master = self.para_frame,
+        text="length",
+        )
+        self.y_width_btn.grid(row = 1, column = 2, pady = 5, padx=5)
+
+        self.y_width=customtkinter.CTkEntry(
+            master = self.para_frame,
+            width = 30,
+            height=20,
+            placeholder_text=95,
+        )
+        self.y_width.grid(row = 1, column = 3, pady = 5, padx=5)
+
+
+
+        self.t_substrat=customtkinter.CTkLabel(
+            master = self.para_frame,
+            text="Thickness",
+        )
+        self.t_substrat.grid(row = 2, column = 0, pady = 5, padx=5)
+
+        self.t_substrat_v=customtkinter.CTkEntry(
+            master = self.para_frame,
+            width = 30,
+            height=20,
+            placeholder_text="6",
+        )
+        self.t_substrat_v.grid(row = 2, column = 1, pady = 5, padx=5)
+
+
+
+        self.line_space_btn=customtkinter.CTkLabel(
+        master = self.para_frame,
+        text="space [mm]",
+        )
+        self.line_space_btn.grid(row = 2, column = 2, pady = 5, padx=5)
+
+        self.line_space=customtkinter.CTkEntry(
+            master = self.para_frame,
+            width = 30,
+            height=20,
+            placeholder_text=10,
+        )
+        self.line_space.grid(row = 2, column = 3, pady = 5, padx=5)
+
+
 
         self.z_layer=customtkinter.CTkLabel(
-        master = self.gcode_frame,
+        master = self.para_frame,
         text="layer height",
         )
-        self.z_layer.grid(row = 1, column = 0, pady = 2, padx=2)
+        self.z_layer.grid(row = 3, column = 0, pady = 5, padx=5)
 
         self.z_layer_v=customtkinter.CTkEntry(
-            master = self.gcode_frame,
+            master = self.para_frame,
             width = 30,
             height=20,
             placeholder_text="1",
         )
-        self.z_layer_v.grid(row = 1, column = 1, pady = 2, padx=2)
+        self.z_layer_v.grid(row = 3, column = 1, pady = 5, padx=5)
 
         self.speed=customtkinter.CTkLabel(
-        master = self.gcode_frame,
+        master = self.para_frame,
         text="Speed [mm/min]",
         )
-        self.speed.grid(row = 2, column = 0, pady = 2, padx=2)
+        self.speed.grid(row = 3, column = 2, pady = 5, padx=5)
 
         self.speed_v=customtkinter.CTkEntry(
-            master = self.gcode_frame,
+            master = self.para_frame,
             width = 60,
             height=20,
             placeholder_text="500",
         )
-        self.speed_v.grid(row = 2, column = 1, pady = 2, padx=2)
+        self.speed_v.grid(row = 3, column = 3, pady =5, padx=5)
 
-        self.filebtn = customtkinter.CTkButton(
-        master =self.gcode_frame,
-        text="Choose file",
-        command = self.choose_file,
-        width=80,
-        height=30,
-        )
 
-        self.start_gcode = customtkinter.CTkButton(
-        master =self.gcode_frame,
-        text="start print",
-        command = self.send_gcode,
-        width=80,
-        height=30,
-        )
 
-        self.n_line = customtkinter.CTkButton(
-        master =self.gcode_frame,
-        text="Next Position",
-        command = lambda: [self.test_sent_parameters(),self.printer.next_position()],
-        width=80,
-        height=30,
-        )
-
+        #### test_frame ####
         self.p_line = customtkinter.CTkButton(
-        master =self.gcode_frame,
-        text="Previous Position",
-        command = lambda: [self.test_sent_parameters(),self.printer.prev_position()],
-        width=80,
-        height=30,
+            master =self.test_frame,
+            text="Previous Position",
+            command = lambda: [self.test_sent_parameters(),self.printer.prev_position()],
+            width=80,
+            height=30,
         )
+        self.p_line.grid(row=0,column=0, pady=2, padx=2)
 
         self.draw_line = customtkinter.CTkButton(
-        master =self.gcode_frame,
-        text="Print Line",
-        command=lambda: [self.test_sent_parameters(), self.printer.print_line()],
-        width=80,
-        height=30,
+            master =self.test_frame,
+            text="Print Line",
+            command=lambda: [self.test_sent_parameters(), self.printer.print_line()],
+            width=80,
+            height=30,
         )
+        self.draw_line.grid(row=0,column=1, pady=2, padx=2)
 
-        self.test_sub_btn = customtkinter.CTkButton(
-        master =self.gcode_frame,
-        text="Test sandard sample",
-        command=self.run_test_sub,
-        width=80,
-        height=30,
+        self.n_line = customtkinter.CTkButton(
+            master =self.test_frame,
+            text="Next Position",
+            command = lambda: [self.test_sent_parameters(),self.printer.next_position()],
+            width=80,
+            height=30,
         )
+        self.n_line.grid(row=0,column=2, pady=2, padx=2)
+
+
+
+
+        #####print_frame########
+        self.filebtn = customtkinter.CTkButton(
+            master =self.print_frame,
+            text="Choose file",
+            command = self.choose_file,
+            width=80,
+            height=30,
+        )
+        self.filebtn.grid(row=0,column=1, pady = 2, padx=2)
+
+        self.wait_time_l=customtkinter.CTkLabel(
+            master = self.print_frame,
+            text="Drying time\nbetween layers (minutes)",
+        )
+        self.wait_time_l.grid(row = 1, column = 0, columnspan=2,  pady = 10, padx=2)
+
+        self.wait_time_entry=customtkinter.CTkEntry(
+            master = self.print_frame,
+            width = 60,
+            height=20,
+            placeholder_text="60",
+        )
+        self.wait_time_entry.grid(row = 1, column = 2, pady = 10, padx=2)
+
+        self.start_gcode = customtkinter.CTkButton(
+            master =self.print_frame,
+            text="start print",
+            command = self.send_gcode,
+            width=80,
+            height=30,
+        )
+        self.start_gcode.grid(row=2,column=0, pady=10, padx=2)
 
         self.next_layer_btn = customtkinter.CTkButton(
-        master =self.gcode_frame,
-        text="next layer",
-        command=self.print_next_layer,
-        width=80,
-        height=30,
+            master =self.print_frame,
+            text="next layer",
+            command=self.print_next_layer,
+            width=80,
+            height=30,
         )
+        self.next_layer_btn.grid(row=2,column=1, pady=10, padx=2)
+        self.next_layer_btn.configure(state="disabled")
 
-        self.homing_btn = customtkinter.CTkButton(
-        master =self.gcode_frame,
-        text="Homing",
-        command=self.printer.homing,
+        self.stop_btn = customtkinter.CTkButton(
+        master =self.print_frame,
+        text="stop print",
+        command = lambda: [self.printer.stop_print(),self.pneumatic.stop_print()],
         width=80,
         height=30,
         )
+        self.stop_btn.grid(row=2,column=2, pady=10, padx=2)
+        self.stop_btn.configure(state="disabled")
+
+        
+        
+        ### substrat frame ####
+        self.test_sub_btn = customtkinter.CTkButton(
+            master =self.substrat_frame,
+            text="Test sandard sample",
+            command=self.run_test_sub,
+            width=80,
+            height=30,
+        )
+        self.test_sub_btn.grid(row = 0, column = 0, pady = 2, padx=2)
+
+        self.test_full_rect_btn = customtkinter.CTkButton(
+            master =self.substrat_frame,
+            text="Test full rectangle",
+            command=self.printer.test__full_rectangle,
+            width=80,
+            height=30,
+        )
+        self.test_full_rect_btn.grid(row = 0, column = 1, pady = 2, padx=2)
+        
         self.window.after(2000,self.send_loop) 
         #we start a loop to regularly send info to the ethercat, 
         #send message when the slides bar are moved is giving to many request = crash
@@ -396,12 +466,47 @@ class amabaGUI:
         self.printer.go_next_layer=1
     def quit(self):
         self.pneumatic.stop_c_program()
-        self.pneumatic.stop_socket()
         self.printer.kill_thread()
         if self.printer.homed:
             self.printer.p.disconnect()
         self.window.destroy() 
+    
+    def choose_substrat(self,sub):
+        if sub=="95x95 PMMA":
+            self.printer.sample_size_x=95
+            self.printer.sample_size_y=95
+            self.printer.line_space=5
+            self.printer.sub=6
 
+            self.t_substrat_v.configure(placeholder_text=6)
+            self.x_width.configure(placeholder_text=95)
+            self.y_width.configure(placeholder_text=95)
+            self.line_space.configure(placeholder_text=5)
+        elif sub=="120x70 PMMA":
+            self.printer.sample_size_x=70
+            self.printer.sample_size_y=120
+            self.printer.line_space=10
+            self.printer.sub=5
+
+            self.t_substrat_v.configure(placeholder_text=6)
+            self.x_width.configure(placeholder_text=70)
+            self.y_width.configure(placeholder_text=120)
+            self.line_space.configure(placeholder_text=5)
+        elif sub=="60x60 PMMA":
+            self.printer.sample_size_x=60
+            self.printer.sample_size_y=60
+            self.printer.line_space=5
+            self.printer.sub=6
+
+            self.t_substrat_v.configure(placeholder_text=6)
+            self.x_width.configure(placeholder_text=60)
+            self.y_width.configure(placeholder_text=60)
+            self.line_space.configure(placeholder_text=5)
+        else:
+            self.printer.sample_size_x=120
+            self.printer.sample_size_y=120
+            self.printer.line_space=5
+            self.printer.sub=6
 
     def lock_gui(self):
         print("lock/unlock GUI")
@@ -415,6 +520,14 @@ class amabaGUI:
             self.draw_line.configure(state="disabled")
             self.test_sub_btn.configure(state="disabled")
             self.homing_btn.configure(state="disabled")
+            self.stop_btn.configure(state="normal")
+            self.next_layer_btn.configure(state="normal")
+            self.x_width.configure(state="disabled")
+            self.y_width.configure(state="disabled")
+            self.t_substrat_v.configure(state="disabled")
+            self.line_space.configure(state="disabled")
+
+
             self.locked=1
         else:
             self.on_ato.configure(state="normal")
@@ -426,6 +539,12 @@ class amabaGUI:
             self.draw_line.configure(state="normal")
             self.test_sub_btn.configure(state="normal")
             self.homing_btn.configure(state="normal")
+            self.stop_btn.configure(state="disabled")
+            self.next_layer_btn.configure(state="disabled")
+            self.x_width.configure(state="normal")
+            self.y_width.configure(state="normal")
+            self.t_substrat_v.configure(state="normal")
+            self.line_space.configure(state="normal")
             self.locked=0
 
 
@@ -465,6 +584,8 @@ class amabaGUI:
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a speed higher than 500")
                 return 0
+        if self.wait_time_entry.get()!='':
+            self.printer.wait_minutes=self.wait_time_entry.get()
         return 1
 
 
@@ -487,21 +608,13 @@ class amabaGUI:
             self.printer.connect()#connect and do calibration
         
         #hide not needed btns
-        self.p_line.grid_forget()
-        self.draw_line.grid_forget()
-        self.n_line.grid_forget()
-        self.speed.grid_forget()
-        self.speed_v.grid_forget()
-        self.test_sub_btn.grid_forget()
+        self.para_frame.grid_forget()
+        self.test_frame.grid_forget()
+        self.substrat_frame.grid_forget()
 
         #make the send_g-code frame display
-        self.gcode_frame.pack(padx=10,pady=10)
-        self.homing_btn.grid(row = 5, column = 1, columnspan = 2, pady=5)
-        self.filebtn.grid(row = 3, column = 0, columnspan = 2, pady=5)
-        self.start_gcode.grid(row = 4, column = 0, columnspan = 2, pady=5)
-        self.next_layer_btn.grid(row = 5, column = 0, columnspan = 2, pady=5)
+        self.print_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
 
-        #self.stop_btn.grid(row = 5, column = 2,padx=10)
 
     def test_depose(self):
         if self.printer.homed==0:
@@ -509,20 +622,14 @@ class amabaGUI:
             self.printer.connect()#connect and do calibration
         # mettre a 6mm la valeur de base du sample
 
-        #hide uneeded btn
-        self.filebtn.grid_forget()
-        self.start_gcode.grid_forget()
-        self.test_sub_btn.grid_forget()
+        #hide not needed btns
+        self.print_frame.grid_forget()
+        self.substrat_frame.grid_forget()
 
-        #make the send_g-code frame display
-        self.gcode_frame.pack(padx=10,pady=10)
-        self.p_line.grid(row = 3, column = 0, padx=10)
-        self.draw_line.grid(row = 3, column = 1,padx=10)
-        self.n_line.grid(row = 3, column = 2,padx=10)
-        self.speed.grid(row = 2, column = 0, pady = 2, padx=2)
-        self.speed_v.grid(row = 2, column = 1, pady = 2, padx=2)
-        self.homing_btn.grid(row = 5, column = 1, columnspan = 2, pady=5)
-        #self.stop_btn.grid(row = 5, column = 2,padx=10)
+        #make the send_g-code frame displa
+        self.para_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+        self.test_frame.grid(row=4,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+
 
     def test_substrat(self):
         if self.printer.homed==0:
@@ -530,19 +637,12 @@ class amabaGUI:
             self.printer.connect()#connect and do calibration
         
         #hide not needed btns
-        self.p_line.grid_forget()
-        self.draw_line.grid_forget()
-        self.n_line.grid_forget()
-        self.filebtn.grid_forget()
-        self.start_gcode.grid_forget()
+        self.print_frame.grid_forget()
+        self.test_frame.grid_forget()
 
-        #make the send_g-code frame display
-        self.gcode_frame.pack(padx=10,pady=10)
-        self.test_sub_btn.grid(row = 3, column = 0, columnspan = 2, pady=10,padx=10)
-        self.speed.grid(row = 2, column = 0, pady = 2, padx=2)
-        self.speed_v.grid(row = 2, column = 1, pady = 2, padx=2)
-        self.homing_btn.grid(row = 5, column = 1, columnspan = 2, pady=5)
-        #self.stop_btn.grid(row = 5, column = 2,padx=10)
+        #make the send_g-code frame displa
+        self.para_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+        self.substrat_frame.grid(row=4,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
 
 
 
@@ -598,8 +698,8 @@ class amabaGUI:
         self.ato_bar.set(self.pneumatic.c_ato)
 
         #update the pressure
-        self.show_pressA.configure(text=self.pneumatic.p_ato)
-        self.show_press.configure(text=self.pneumatic.p_cart)
+        #self.show_pressA.configure(text=self.pneumatic.p_ato)
+        #self.show_press.configure(text=self.pneumatic.p_cart)
 
         #update the on/off
         if self.pneumatic.st_point:
@@ -620,12 +720,6 @@ class amabaGUI:
         else:
             self.on_ato.configure(text = "OFF")
             self.on_ato.deselect()
-        
-        #pneumatic.sendToClient(1)
+            
         self.window.update()
-        #self.window.after(500, self.update) # run itself again after 500 ms
-
-    #def stop_Updates(self):
-    #    self.window.after_cancel(self.update)
-
 

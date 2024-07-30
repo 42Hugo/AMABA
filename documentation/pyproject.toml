@@ -1,0 +1,8 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "AMABA Documentation"
+authors = [{name = "Hugo Allard", email = "hugo.allard@ecam-strasboug.eu"}]
+dynamic = ["version", "description"]
