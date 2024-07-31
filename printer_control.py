@@ -40,8 +40,8 @@ class Printer():
         self.max_sub=50
         self.min_speed=500
         self.max_speed=15000
-        self.bed_max_y=250#check max safe value
-        self.bed_max_x=210
+        self.bed_max_y=210#check max safe value
+        self.bed_max_x=250
         self.z_offset=1.3#it's negativ her, difference with the 0 of the printer 
 
 
@@ -49,7 +49,6 @@ class Printer():
         self.on_going_print=0 #active for any print including small test and line
         self.multilayer_print=0#active only when a g-code is uploaded and sent
         self.go_next_layer=0#changed by a timer or user input
-        #self.self.pneumatic=None
         self.mutex=threading.Lock()
 
         self.pile_gcode = []
@@ -58,9 +57,9 @@ class Printer():
         self.pile_depose=[]
         self.pile_depose.append(0)
         self.thread_state=1
-        self.wait_minutes=60
-        #self.t_gcode= threading.Thread(target=self.send_gcode_routine)
-        #self.t_gcode.start()
+        self.wait_minutes=float(60)
+        self.t_gcode= threading.Thread(target=self.send_gcode_routine)
+        self.t_gcode.start()
     
     def kill_thread(self):
         print("we killed the thread")
@@ -68,12 +67,13 @@ class Printer():
         #self.t_gcode.join()
     
     def send_gcode_routine(self):
+        
 
         while True:
             if not self.thread_state:
                 break
 
-            if not self.stop:
+            if self.stop:
                 self.pile_gcode=[]
                 self.pile_change_layer=[]
                 self.pile_depose=[]
@@ -94,7 +94,7 @@ class Printer():
                     layer=self.pile_gcode[0]
 
                     while layer!=[]:
-                        if not self.stop:
+                        if self.stop:
                                 continue
                         self.p.send_now(layer[0])  #send to printer
                         layer.pop(0)
@@ -102,7 +102,7 @@ class Printer():
                         while self.flag!=1:
                             if not self.thread_state:
                                 break
-                            if not self.stop:
+                            if self.stop:
                                 continue
                             time.sleep(0.1)#needed to let the GUI update
                     
@@ -113,28 +113,30 @@ class Printer():
                     self.pile_change_layer.pop(0)
                     self.pile_depose.pop(0)
 
-                    #print("we sent the orders")
                 finally:
                     self.mutex.release()
                     if change_layer:
-                        print("waiting for next layer order")
                         self.p.send_now("G91")#change to relativ coordinate
                         self.p.send_now("G1 Z3")#go up 3mm in z to let dry in peace
 
                         total_wait_time = self.wait_minutes * 60#self.wait_minutes given by user input
                         elapsed_time = 0
                         interval = 0.5
+                        self.go_next_layer=0
+
                         while self.go_next_layer == 0 and elapsed_time < total_wait_time:
                             if not self.thread_state:  # Check if user quit
                                 break
-                            if not self.stop:
+                            if self.stop:
                                 continue
                             time.sleep(interval)
                             elapsed_time += interval
 
                         self.p.send_now("G1 Z-3")#go back 3mm lower
                         self.p.send_now("G90")#back to absolute coordinate
-                        self.go_next_layer=0
+                        time.sleep(0.1)#to make sure the "ok" was received 
+                        self.flag=0#it will take the laast cmd as a flag 
+
             else:
                 if self.on_going_print:
                     self.on_going_print=0
@@ -252,7 +254,7 @@ class Printer():
         layer.append("M400")
         print_data=[layer,depose,change_layer]
         self.add_to_pile(print_data)
-        #print(print_data)
+        print(print_data)
         return
 
     def stop_print(self):
@@ -269,13 +271,13 @@ class Printer():
         if self.line<(self.bed_max_y-self.line_space):
             self.line+=self.line_space
         self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
-        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F1000.000")
+        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F2000.000")
 
     def prev_position(self):
         if self.line>(self.ydist +self.line_space):
             self.line-=self.line_space
         self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
-        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F1000.000")
+        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F2000.000")
 
     def print_line(self):
         if (self.z>=self.min_z and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
@@ -355,15 +357,15 @@ class Printer():
 
     def connect(self):
         # Start communication with the printer
-        #self.p = printcore('/dev/ttyACM0', 115200)
+        self.p = printcore('/dev/ttyACM0', 115200)
         self.flag = 0
         # Set the response callback
-        #self.p.loud = True
-        #self.p.recvcb = self.response_callback
+        self.p.loud = True
+        self.p.recvcb = self.response_callback
 
         # Wait until the printer is connected
-        #while not self.p.online:
-            #time.sleep(0.1)
+        while not self.p.online:
+            time.sleep(0.1)
         
-        #self.homing()
+        self.homing()
         return 

@@ -585,7 +585,7 @@ class amabaGUI:
                 tk.messagebox.showinfo("send g-code", "Please choose a speed higher than 500")
                 return 0
         if self.wait_time_entry.get()!='':
-            self.printer.wait_minutes=self.wait_time_entry.get()
+            self.printer.wait_minutes=float(self.wait_time_entry.get())
         return 1
 
 
@@ -662,12 +662,12 @@ class amabaGUI:
                 self.on_cart.configure(text = "ON")
                 self.pneumatic.st_cart = 1
         elif case=="a":
-            if self.pneumatic.st_Ato:
+            if self.pneumatic.st_ato:
                 self.on_ato.configure(text = "OFF")
-                self.pneumatic.st_Ato = 0
+                self.pneumatic.st_ato = 0
             else:
                 self.on_ato.configure(text = "ON")
-                self.pneumatic.st_Ato = 1
+                self.pneumatic.st_ato = 1
         #pneumatic.sendToClient(1)
     def autoF(self):
         if self.pneumatic.automatic:
@@ -714,7 +714,7 @@ class amabaGUI:
         else:
             self.on_cart.configure(text = "OFF")
             self.on_cart.deselect()
-        if self.pneumatic.st_Ato:
+        if self.pneumatic.st_ato:
             self.on_ato.configure(text = "ON")
             self.on_ato.select()
         else:
