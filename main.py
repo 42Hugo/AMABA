@@ -1,9 +1,7 @@
 #for the printer
 from printer_control import Printer
-
 #for the pneumatic control with ethercat
 from pneumatic_control import Pneumatic
-
 #for the GUI
 from amaba_gui import amabaGUI
 

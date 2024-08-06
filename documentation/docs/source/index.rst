@@ -15,7 +15,6 @@ Contents
 .. toctree::
 
    usage
-   slicer
    gui
    printer
    pneumatic
