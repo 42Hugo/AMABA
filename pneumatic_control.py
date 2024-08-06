@@ -70,6 +70,7 @@ class Pneumatic:
         try:
             #launch the c process
             self.process = subprocess.Popen(['/home/amaba/Desktop/dev_ws/ighEthercat/ethercat/examples/user/ec_user_example'],  stdin=subprocess.PIPE)
+            time.sleep(1)#wait here to let the c process initiate
             self.connected+=1
         except:
             print("An error occured when trying to start c_process")

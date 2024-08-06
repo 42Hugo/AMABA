@@ -196,7 +196,7 @@ class Printer():
                         while self.flag!=1:
                             if not self.thread_state:
                                 break
-                            if not self.stop:
+                            if self.stop:
                                 continue
                             time.sleep(0.1)#needed to let the GUI update, if not the GUI will freeze while waiting 
                     
@@ -217,10 +217,12 @@ class Printer():
                         total_wait_time = self.wait_minutes * 60#self.wait_minutes given by user input
                         elapsed_time = 0
                         interval = 0.5
+                        self.go_next_layer=0
+
                         while self.go_next_layer == 0 and elapsed_time < total_wait_time:
                             if not self.thread_state:  # Check if user quit
                                 break
-                            if not self.stop:
+                            if self.stop:
                                 continue
                             time.sleep(interval)
                             elapsed_time += interval
@@ -423,7 +425,7 @@ class Printer():
         if self.line<(self.bed_max_y-self.line_space):
             self.line+=self.line_space
         self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
-        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F1000.000")
+        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F2000.000")
 
     def prev_position(self):
         """the method is activated from the GUI to move backward the position of the nozzle on *y* from the distance line_space.
@@ -431,7 +433,7 @@ class Printer():
         if self.line>(self.ydist +self.line_space):
             self.line-=self.line_space
         self.p.send_now("G1 Z" +str(10 + self.sub+self.z))
-        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F1000.000")
+        self.p.send_now("G1 X"+str(self.bed_max_x- self.sample_size_x)+ " Y"+str(self.line)+" F2000.000")
 
     def print_line(self):
         """based on the current position of the nozzle choses with the methods prev_position and next_position print a line of the substrat informations
@@ -541,5 +543,6 @@ class Printer():
         while not self.p.online:
             time.sleep(0.1)
         
+        self.homing()
         self.homing()
         return 
