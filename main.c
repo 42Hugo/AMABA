@@ -267,11 +267,12 @@ void decodeMessage(const char *mes)
 
     if (mes[6] - '0'!=0){
         ana2 = (mes[6] - '0') * 10 + (mes[7] - '0');
-        ana2 = 16383.75f*(ana2/10)+4914.625f;//
+        ana2 = 16383.75f*(ana2/10)+4914.625f;//on the 0-2 bar VPPM
     }
     else if (mes[7] - '0'!=0){
         ana2 = (mes[7] - '0');
         ana2 = 16383.75f*(ana2/10)+4914.625f;//on the 0-2 bar VPPM
+        //ana2 =4423;//to get rid of later; test to have 0.2 bar
     }
     else{
         ana2=0;

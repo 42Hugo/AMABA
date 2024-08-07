@@ -816,7 +816,6 @@ class amabaGUI:
             self.on_cart.configure(text = "OFF")
             self.on_cart.deselect()
         if self.pneumatic.st_ato:
-        if self.pneumatic.st_ato:
             self.on_ato.configure(text = "ON")
             self.on_ato.select()
         else:
