@@ -619,7 +619,7 @@ class amabaGUI:
         """method to open a window that lets the user choose a file to print, currently crashed if used multiple times
         """
 
-        """
+        
         self.window.update()
         self.filePath = ""
         self.filePath  = fd.askopenfilename()#crash when used multiple time, only works once, find a solution
@@ -633,7 +633,7 @@ class amabaGUI:
         root.withdraw()
         self.filePath = ""
         self.filePath  = fd.askopenfilename()
-        root.destroy()
+        root.destroy()"""
 
     def test_sent_parameters(self):
         """here check if parameters input by user are valide and disply when needed an error
@@ -656,19 +656,19 @@ class amabaGUI:
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a speed higher than 500 and lower than 12000")
                 return 0
-        if self.x_width.get()!='' and self.x_width.get()>0 and self.x_width.get()<=self.printer.bed_max_x:
+        if self.x_width.get()!='' and float(self.x_width.get())>0 and float(self.x_width.get())<=self.printer.bed_max_x:
             self.printer.sample_size_x=float(self.x_width.get())
         else:
             tk.messagebox.showinfo("send g-code", "Please choose a x width higher than 0 and lower than 210")
             return 0
 
-        if self.y_width.get()!='' and self.y_width.get()>0 and self.y_width.get()<=self.printer.bed_max_y:
+        if self.y_width.get()!='' and float(self.y_width.get())>0 and float(self.y_width.get())<=self.printer.bed_max_y:
             self.printer.sample_size_y=float(self.y_width.get())
         else:
             tk.messagebox.showinfo("send g-code", "Please choose a y length higher than 0 and lower than 250")
             return 0
 
-        if self.line_space.get()!=''and self.line_space.get()>0 and self.line_space.get()<=100:
+        if self.line_space.get()!=''and float(self.line_space.get())>0 and float(self.line_space.get())<=100:
             self.printer.line_space=float(self.line_space.get())
         else:
             tk.messagebox.showinfo("send g-code", "Please choose a line space higher than 0 and lower than 100")
@@ -822,8 +822,8 @@ class amabaGUI:
             self.on_ato.configure(text = "OFF")
             self.on_ato.deselect()
         
-        if self.wait_time_entry.get()!='' and self.wait_time_entry.get()!=self.printer.wait_minutes:
-            self.printer.wait_minutes=self.wait_time_entry.get()
+        if self.wait_time_entry.get()!='':
+            self.printer.wait_minutes=float(self.wait_time_entry.get())
             
         self.window.update()
 

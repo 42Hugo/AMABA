@@ -215,11 +215,11 @@ class Printer():
                         self.p.send_now("G1 Z3")#go up 3mm in z to let dry (needed for printing without atomization)
 
                         total_wait_time = self.wait_minutes * 60#self.wait_minutes given by user input
-                        elapsed_time = 0
+                        elapsed_time = float(0)
                         interval = 0.5
                         self.go_next_layer=0
 
-                        while self.go_next_layer == 0 and elapsed_time < total_wait_time:
+                        while self.go_next_layer == 0 and float(elapsed_time) < float(total_wait_time):
                             if not self.thread_state:  # Check if user quit
                                 break
                             if self.stop:
@@ -543,6 +543,5 @@ class Printer():
         while not self.p.online:
             time.sleep(0.1)
         
-        self.homing()
         self.homing()
         return 
