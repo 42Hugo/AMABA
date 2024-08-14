@@ -22,6 +22,8 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
+    'breathe',
+    'sphinx_copybutton',
 ]
 
 intersphinx_mapping = {
@@ -29,6 +31,16 @@ intersphinx_mapping = {
     'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
 }
 intersphinx_disabled_domains = ['std']
+
+breathe_projects = {
+    "AMABA": "C:\\Users\\hugoa\\OneDrive\\Bureau\\AMABA\\Automatisation\\amaba\\amaba\\documentation\\docs\\doxygen\\xml"
+}
+breathe_default_project = "AMABA"
+
+# Additional Breathe configurations
+breathe_default_members = ('members', 'undoc-members')
+breathe_show_define_initializer = True
+breathe_show_enumvalue_initializer = True
 
 templates_path = ['_templates']
 

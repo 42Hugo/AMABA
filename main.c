@@ -44,29 +44,27 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/select.h>
-
-/****************************************************************************/
-
 #include "ecrt.h"
 
-/****************************************************************************/
+
 
 /** Task period in ns. */
 #define PERIOD_NS   (1000000)
 
-#define MAX_SAFE_STACK (8 * 1024) /* The maximum stack size which is
-                                     guranteed safe to access without
-                                     faulting */
+/** The maximum stack size which is guranteed safe to access without faulting */
+#define MAX_SAFE_STACK (8 * 1024) 
 
 /****************************************************************************/
 
-/* Constants */
+/** predefined in the etherlabmaster  */
 #define NSEC_PER_SEC (1000000000)
+
+/** frequenct, predefined in the etherlabmaster  */
 #define FREQUENCY (NSEC_PER_SEC / PERIOD_NS)
 
-//socket var
+/** socket var to comunicate with pneumatic_control.py */
 #define PORT 12345
-#define BUFFER_SIZE 1024 //buffer size t change
+#define BUFFER_SIZE 1024 
 
 int server_fd, client_fd=-1;
 struct sockaddr_in address;
@@ -106,7 +104,7 @@ static unsigned int off_ana_in2;
 static unsigned int off_ana_out1;
 static unsigned int off_ana_out2;
 static unsigned int off_dig_out1;
-//static unsigned int off_dig_out2;
+
 
 const static ec_pdo_entry_reg_t domain1_regs[] = {
     {AnaInSlavePos,  Beckhoff_EL3164, 0x6000, 0x11, &off_ana_in1},
@@ -114,24 +112,22 @@ const static ec_pdo_entry_reg_t domain1_regs[] = {
     {AnaOutSlavePos, Beckhoff_EL4104, 0x7000, 0x01, &off_ana_out1},
     {AnaOutSlavePos, Beckhoff_EL4104, 0x7010, 0x01, &off_ana_out2},
     {DigOutSlavePos, Beckhoff_EL2024, 0x7000, 0x01, &off_dig_out1},
-    //{DigOutSlavePos, Beckhoff_EL2024, 0x7010, 0x01, &off_dig_out2},
     {}
 };
-//ana1 + dig1 =atomisation with 0-2bar vppm
-//ana2 + dig2 = cartouche with 0-6 bar vppm
-//dig3 = pointeau with minimum 5.7 bar
+//ana1 + dig1 =atomisation with 0-6bar vppm
+//ana2 + dig2 = cartouche with 0-2 bar vppm
+//dig3 = pointeau with minimum 5.7 bar and is constant
 
 
 static unsigned int counter = 0;
 static unsigned int blink = 0;
-static unsigned int dig1=0;
-static unsigned int dig2=0;
-static unsigned int dig3=0;
+static unsigned int dig1=0;//state of the solenoid valve of the atomizer
+static unsigned int dig2=0;//state of the solenoid valve of the cartouche (pressure on the fluid)
+static unsigned int dig3=0;//state of the solenoid valve of the nozzle
 static float ana1=0.0f;
 static float ana2=0.0f;
-static unsigned int state= 1;//starts at 1 because the code is running
-static unsigned int loop= 1;//loop until we get a state =0
-//to test independently for the moment
+static unsigned int state= 1;//state of the process 1: on; 0: off
+static unsigned int loop= 1;//will kepp the c process looping until turned to 0
 static char message[] ="10000000";//message from the GUI to ethercat bit 1: on/off; bit2,3: dig out; bit4,5 and 6,7: pressure in bar^-1
 
 /*****************************************************************************/
@@ -247,6 +243,30 @@ static ec_sync_info_t slave_1_syncs[] = {
 
 /*****************************************************************************/
 
+/**
+ * @brief Decodes the message sent by pneumatic_control.py and updates the global variables accordingly.
+ * 
+ * The maximum value that can be set to the analog output is 32767. Values above this will be set to 0 for the VPPM 0-2 bar.
+ * (The 0-6 bar wasn't tested at maximum, but it is most likely the same).
+ * 
+ * **VPPM 0-6 bar (with an output of 0-2 bar needed):**
+ * - The pressure output is linear above 0.1 bar.
+ * - Set ana1 to 2100 to get 0.1 bar.
+ * - Set ana1 to 12287 to get 2 bar.
+ * - Formula: `ana1 = A * ana1 + B`
+ *   - `A = (outmax - outmin) / (inmax - inmin) = (12287 - 2100) / (2 - 0.1) = 5361.58`
+ *   - `B = outmin - A * inmin = 2100 - 5361.58 * 0.1 = 1536.84`
+ * 
+ * **VPPM 0-2 bar (with an output of 0-2 bar needed):**
+ * - The pressure output is linear above 0.1 bar.
+ * - Set ana2 to 6553 to get 0.1 bar.
+ * - Set ana2 to 37685 to get 2 bar (unfortunately, the maximum value is 32767, so the maximum is now 1.7 bar).
+ * - Formula: `ana2 = A * ana2 + B`
+ *   - `A = (outmax - outmin) / (inmax - inmin) = (37685 - 6553) / (1.7 - 0.1) = 16383.75`
+ *   - `B = outmin - A * inmin = 6553 - 16383.75 * 0.1 = 4914.625`
+ * 
+ * @param mes The message sent by pneumatic_control.py as a string.
+ */
 void decodeMessage(const char *mes)
 {
     state=mes[0]-'0';
@@ -255,7 +275,7 @@ void decodeMessage(const char *mes)
     dig3=mes[3]-'0';
     if (mes[4] - '0'!=0){
         ana1 = (mes[4] - '0') * 10 + (mes[5] - '0');
-        ana1 = 5361.58f*(ana1/10)+1536.84f;//on the 0-6 bar vppm  using only o-2 barfinal approximation will have to be defined
+        ana1 = 5361.58f*(ana1/10)+1536.84f;//on the 0-6 bar vppm  using only 0-2 bar
     }
     else if (mes[5] - '0'!=0){
         ana1 = (mes[5] - '0');
@@ -272,14 +292,17 @@ void decodeMessage(const char *mes)
     else if (mes[7] - '0'!=0){
         ana2 = (mes[7] - '0');
         ana2 = 16383.75f*(ana2/10)+4914.625f;//on the 0-2 bar VPPM
-        //ana2 =4423;//to get rid of later; test to have 0.2 bar
     }
     else{
         ana2=0;
     }
 }
 
-/*fct for the sockets*/
+/**
+ * @brief Set the nonblocking object
+ * 
+ * @param fd The file descriptor to set to nonblocking
+ */
 void set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0) {
@@ -292,6 +315,10 @@ void set_nonblocking(int fd) {
     }
 }
 
+/**
+ * @brief start the comunicaion with pneumatic_control.py using a socket and tries to connect
+ * 
+ */
 void start_socket() {
     int opt = 1;
 
@@ -301,7 +328,7 @@ void start_socket() {
         exit(EXIT_FAILURE);
     }
 
-    // Set the socket options to allow reuse of the a dosn'ddress
+    // Set the socket options to allow reuse of the same dosn address
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
         perror("setsockopt failed");
         close(server_fd);
@@ -326,12 +353,15 @@ void start_socket() {
         exit(EXIT_FAILURE);
     }
 
-    printf("Server listening on port %d\n", PORT);
 
     // Set the server socket to non-blocking mode
     set_nonblocking(server_fd);
 }
 
+/**
+ * @brief close the socket before exiting the program
+ * 
+ */
 void close_socket() {
     if (client_fd != -1) {
         close(client_fd);
@@ -339,6 +369,10 @@ void close_socket() {
     close(server_fd);
 }
 
+/**
+ * @brief listen to the socket and read the message sent by pneumatic_control.py and if connection wasn't established tries to connect
+ * 
+ */
 void listen_to_socket() {
     if (client_fd == -1) {
         // No client connection yet, try to accept one
@@ -370,15 +404,9 @@ void listen_to_socket() {
         } else if (activity > 0 && FD_ISSET(client_fd, &read_fds)) {
             // Read data from the client
             int bytes_read = read(client_fd, buffer, 8);
-            //printf("bytes read: %u\n", bytes_read);
             if (bytes_read > 0) {
                 buffer[bytes_read] = '\0'; // Null-terminate the received string
-                //printf("Received from client: %s\n", buffer);
                 strcpy(message, buffer);
-
-                // Send a response back to the client
-                //char *response = "Hello from C server!";
-                //write(client_fd, response, strlen(response));
 
                 if (strcmp(buffer, "0") == 0) {
                     loop = 0;
@@ -394,68 +422,53 @@ void listen_to_socket() {
     }
 }
 
-
+/**
+ * @brief standard cyclic task to check the state of the domain and the master
+ * 
+ */
 void check_domain1_state(void)
 {
     ec_domain_state_t ds;
 
     ecrt_domain_state(domain1, &ds);
-    /*
-    if (ds.working_counter != domain1_state.working_counter) {
-        printf("Domain1: WC %u.\n", ds.working_counter);
-    }
-    if (ds.wc_state != domain1_state.wc_state) {
-        printf("Domain1: State %u.\n", ds.wc_state);
-    }
-    */
     domain1_state = ds;
 }
 
 /*****************************************************************************/
 
+/**
+ * @brief standard cyclic task to check the state of the master
+ * 
+ */
 void check_master_state(void)
 {
     ec_master_state_t ms;
 
     ecrt_master_state(master, &ms);
-    /*
-    if (ms.slaves_responding != master_state.slaves_responding) {
-        printf("%u slave(s).\n", ms.slaves_responding);
-    }
-    if (ms.al_states != master_state.al_states) {
-        printf("AL states: 0x%02X.\n", ms.al_states);
-    }
-    if (ms.link_up != master_state.link_up) {
-        printf("Link is %s.\n", ms.link_up ? "up" : "down");
-    }
-    */
 
     master_state = ms;
 }
 
 /*****************************************************************************/
 
+/**
+ * @brief standard cyclic task to check the state of the slave configuration
+ * 
+ */
 void check_slave_config_states(void)
 {
     ec_slave_config_state_t s;
 
     ecrt_slave_config_state(sc_ana_in, &s);
-    /*
-    if (s.al_state != sc_ana_in_state.al_state) {
-        printf("AnaIn: State 0x%02X.\n", s.al_state);
-    }
-    if (s.online != sc_ana_in_state.online) {
-        printf("AnaIn: %s.\n", s.online ? "online" : "offline");
-    }
-    if (s.operational != sc_ana_in_state.operational) {
-        printf("AnaIn: %soperational.\n", s.operational ? "" : "Not ");
-    }
-    */
     sc_ana_in_state = s;
 }
 
 /*****************************************************************************/
 
+/**
+ * @brief cyclic task occuring at the defined frequency and updating the pneumatic elements based on the mes received from the pneumatic_control.py
+ * 
+ */
 void cyclic_task()
 {
     //local variables
@@ -476,27 +489,24 @@ void cyclic_task()
 
     listen_to_socket();
 
-    //printf("!");
     //check updates from the GUI
     if (message[0] != '\0'){
-        decodeMessage(message);//here the IPC will have to be added
-        //printf("Received from client: %s\n", message);
+        decodeMessage(message);
+
         //check if the state if 0 to kill program
         if (!state){
-            //maybe turning off everythin properly first
-            
-            
-            //digital write
+            //turn everything off
+
+            //digital write 
             EC_WRITE_U8(domain1_pd + off_dig_out1, 0x00);
 
-            //analog write // a slow decrease might be needed 
+            //analog write 
             EC_WRITE_U16(domain1_pd + off_ana_out1, 0);
             EC_WRITE_U16(domain1_pd + off_ana_out2, 0);
-            //printf("Terminating cycle...");
 
-            loop=0;//will add a flag here to terminate the while loop in the main
+            loop=0;//will add a flag here to terminate the while loop in the main function
 
-            return;//exit the program
+            return;
         }
         
         // Read the current value at the address
@@ -507,17 +517,23 @@ void cyclic_task()
         current_dig2 = (current_dig&(1<<1))/2;//cart
         current_dig3 = (current_dig&(1<<2))/4;//pointeau
 
-        // Compare with the new value and write if needed
+        // Compare with the new value and update if needed
+
+        //analogue values
+
+        //atomisation
         if (current_ana1 != (int)ana1) {
-            printf("current  ana1:%u new ana1: %u \n", current_ana1,(int)ana1);
             
-            EC_WRITE_U16(domain1_pd + off_ana_out1, (int)ana1);//atomisation
-        }
-        if (current_ana2 != (int)ana2) {
-            
-            EC_WRITE_U16(domain1_pd + off_ana_out2, ana2);//ana2 = cartouche
+            EC_WRITE_U16(domain1_pd + off_ana_out1, (int)ana1);
         }
 
+        //cartouche
+        if (current_ana2 != (int)ana2) {
+            
+            EC_WRITE_U16(domain1_pd + off_ana_out2, ana2);
+        }
+
+        //digital values
         
         //cartouche
         if (current_dig1 != dig1) {
@@ -542,8 +558,8 @@ void cyclic_task()
             dig_flag=1;
 
         }
+
         //pointeau
-        
         if (current_dig3 != dig3) {
             if(dig3){
                 current_dig=current_dig | 0x04;
@@ -554,9 +570,10 @@ void cyclic_task()
             dig_flag=1;
 
         }
+
+        //if at least one digital value was changed
         if (dig_flag)
         {
-            printf("writting to the dig");
             EC_WRITE_U8(domain1_pd + off_dig_out1, current_dig);
         }
         
@@ -565,7 +582,7 @@ void cyclic_task()
     if (counter) {
         counter--;
     }
-    else { // do this at 1 Hz
+    else {
         counter = FREQUENCY;
 
         // calculate new process data
@@ -575,15 +592,10 @@ void cyclic_task()
         uint16_t check_ana1 = EC_READ_U16(domain1_pd + off_ana_out1);
         uint16_t check_ana2 = EC_READ_U16(domain1_pd + off_ana_out2);
         uint8_t check_dig1 = EC_READ_U8(domain1_pd + off_dig_out1);
-        //printf("Check Analog Output 1: %u and Analog Output 2: %u\n", check_ana1, check_ana2);
-        //printf("Check Digital Output 1: %u and Digital Output 2: %u and Digital Output 3: %u\n", check_dig1, check_dig1, check_dig1);
-
-
-        //Analog read
         
+        //Analog read
         uint16_t ana_in_value1 = EC_READ_U16(domain1_pd + off_ana_in1);
         uint16_t ana_in_value2 = EC_READ_U16(domain1_pd + off_ana_in2);
-        printf("Input1 : %u and Input 2: %u\n", ana_in_value1, ana_in_value2);
         
         // check for master state (optional)
         check_master_state();
@@ -600,6 +612,10 @@ void cyclic_task()
 }
 /****************************************************************************/
 
+/**
+ * @brief standard in the user example
+ * 
+ */
 void stack_prefault(void)
 {
     unsigned char dummy[MAX_SAFE_STACK];
@@ -609,6 +625,11 @@ void stack_prefault(void)
 
 /****************************************************************************/
 
+/**
+ * @brief main function to start the cyclic task and the socket
+ * 
+ * @return int 
+ */
 int main()
 {
     ec_slave_config_t *sc;
