@@ -4,6 +4,7 @@ from tkinter import filedialog as fd
 import customtkinter
 import time
 import threading
+import easygui 
 
 #for the printer
 from printer_control import Printer
@@ -384,7 +385,7 @@ class amabaGUI:
         self.p_line = customtkinter.CTkButton(
             master =self.test_frame,
             text="Previous Position",
-            command = lambda: [self.test_sent_parameters(),self.printer.prev_position()],
+            command = lambda: self.printer.prev_position() if self.test_sent_parameters() else None,
             width=80,
             height=30,
         )
@@ -394,7 +395,7 @@ class amabaGUI:
         self.draw_line = customtkinter.CTkButton(
             master =self.test_frame,
             text="Print Line",
-            command=lambda: [self.test_sent_parameters(), self.printer.print_line()],
+            command=lambda: self.printer.print_line() if self.test_sent_parameters() else None,
             width=80,
             height=30,
         )
@@ -404,7 +405,7 @@ class amabaGUI:
         self.n_line = customtkinter.CTkButton(
             master =self.test_frame,
             text="Next Position",
-            command = lambda: [self.test_sent_parameters(),self.printer.next_position()],
+            command = lambda: self.printer.next_position() if self.test_sent_parameters() else None,
             width=80,
             height=30,
         )
@@ -622,7 +623,7 @@ class amabaGUI:
         
         self.window.update()
         self.filePath = ""
-        self.filePath  = fd.askopenfilename()#crash when used multiple time, only works once, find a solution
+        self.filePath  = easygui.fileopenbox()#the fd.askopenfile() was making the GUI crash, this one works better
         self.window.update()
         """
 
@@ -656,23 +657,26 @@ class amabaGUI:
             else:
                 tk.messagebox.showinfo("send g-code", "Please choose a speed higher than 500 and lower than 12000")
                 return 0
-        if self.x_width.get()!='' and float(self.x_width.get())>0 and float(self.x_width.get())<=self.printer.bed_max_x:
-            self.printer.sample_size_x=float(self.x_width.get())
-        else:
-            tk.messagebox.showinfo("send g-code", "Please choose a x width higher than 0 and lower than 210")
-            return 0
+        if self.x_width.get()!='':
+            if float(self.x_width.get())>0 and float(self.x_width.get())<=self.printer.bed_max_x:
+                self.printer.sample_size_x=float(self.x_width.get())
+            else:
+                tk.messagebox.showinfo("send g-code", "Please choose a x width higher than 0 and lower than 210")
+                return 0
 
-        if self.y_width.get()!='' and float(self.y_width.get())>0 and float(self.y_width.get())<=self.printer.bed_max_y:
-            self.printer.sample_size_y=float(self.y_width.get())
-        else:
-            tk.messagebox.showinfo("send g-code", "Please choose a y length higher than 0 and lower than 250")
-            return 0
+        if self.y_width.get()!='':
+            if float(self.y_width.get())>0 and float(self.y_width.get())<=self.printer.bed_max_y:
+                self.printer.sample_size_y=float(self.y_width.get())
+            else:
+                tk.messagebox.showinfo("send g-code", "Please choose a y length higher than 0 and lower than 250")
+                return 0
 
-        if self.line_space.get()!=''and float(self.line_space.get())>0 and float(self.line_space.get())<=100:
-            self.printer.line_space=float(self.line_space.get())
-        else:
-            tk.messagebox.showinfo("send g-code", "Please choose a line space higher than 0 and lower than 100")
-            return 0
+        if self.line_space.get()!='':
+            if float(self.line_space.get())>0 and float(self.line_space.get())<=100:
+                self.printer.line_space=float(self.line_space.get())
+            else:
+                tk.messagebox.showinfo("send g-code", "Please choose a line space higher than 0 and lower than 100")
+                return 0
         return 1
 
 
@@ -685,60 +689,99 @@ class amabaGUI:
     def send_gcode(self):
         """Method to start a g-code from a file
         """
-        if self.test_sent_parameters():
-            if self.filePath.endswith(".gcode"):
-                self.printer.multilayer_print=1
-                self.printer.load_gcode(self.filePath)
-                self.printer.get_line_and_modify()
-            else:
-                tk.messagebox.showinfo("send g-code", "Please choose a g-code file")
+        if self.filePath.endswith(".gcode"):
+            self.printer.multilayer_print=1
+            self.printer.load_gcode(self.filePath)
+            self.printer.get_line_and_modify()
+        else:
+            tk.messagebox.showinfo("send g-code", "Please choose a g-code file")
 
     def gcodeF(self):
         """opening the g-code frame with options to start g-code from a file. First connection with the printer is started and a homing is made, be careful homing can't be cancelled
         """
+        def connect_and_calibrate():
+            if not self.printer.connect():
+                tk.messagebox.showinfo("Test g-code", "Printer is not connected")
+                return
+            #hide not needed btns
+            self.para_frame.grid_forget()
+            self.test_frame.grid_forget()
+            self.substrat_frame.grid_forget()
+
+            #make the send_g-code frame display
+            self.print_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+            
         if self.printer.homed==0:
             tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
-            self.printer.connect()#connect and do calibration
+            threading.Thread(target=connect_and_calibrate, daemon=True).start()
         
-        #hide not needed btns
-        self.para_frame.grid_forget()
-        self.test_frame.grid_forget()
-        self.substrat_frame.grid_forget()
+        if self.printer.homed==1:
+            #hide not needed btns
+            self.para_frame.grid_forget()
+            self.test_frame.grid_forget()
+            self.substrat_frame.grid_forget()
 
-        #make the send_g-code frame display
-        self.print_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+            #make the send_g-code frame display
+            self.print_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
 
 
     def test_depose(self):
         """opening the test depose frame with options to draw lines without a file. First connection with the printer is started and a homing is made, be careful homing can't be cancelled
         """
+        def connect_and_calibrate():
+            if not self.printer.connect():
+                tk.messagebox.showinfo("Test g-code", "Printer is not connected")
+                return
+            #hide not needed btns
+            self.print_frame.grid_forget()
+            self.substrat_frame.grid_forget()
+
+            #make the send_g-code frame displa
+            self.para_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+            self.test_frame.grid(row=4,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+        
         if self.printer.homed==0:
             tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
-            self.printer.connect()#connect and do calibration
+            threading.Thread(target=connect_and_calibrate, daemon=True).start()
+        
+        if self.printer.homed==1:
+            #hide not needed btns
+            self.print_frame.grid_forget()
+            self.substrat_frame.grid_forget()
 
-        #hide not needed btns
-        self.print_frame.grid_forget()
-        self.substrat_frame.grid_forget()
-
-        #make the send_g-code frame displa
-        self.para_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
-        self.test_frame.grid(row=4,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+            #make the send_g-code frame displa
+            self.para_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+            self.test_frame.grid(row=4,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
 
 
     def test_substrat(self):
         """opening the g-test substrat frame with options to test a substrat with multiple line print without a file. First connection with the printer is started and a homing is made, be careful homing can't be cancelled
         """
+        def connect_and_calibrate():
+            if not self.printer.connect():
+                print("printer not co")
+                tk.messagebox.showinfo("Test g-code", "Printer is not connected")
+                return
+            #hide not needed btns
+            self.print_frame.grid_forget()
+            self.test_frame.grid_forget()
+
+            #make the send_g-code frame displa
+            self.para_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+            self.substrat_frame.grid(row=4,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+        
         if self.printer.homed==0:
             tk.messagebox.showinfo("Test g-code", "Calibration will start, make sure only the Prusa Bed is mounted on the printer") 
-            self.printer.connect()#connect and do calibration
+            threading.Thread(target=connect_and_calibrate, daemon=True).start()
         
-        #hide not needed btns
-        self.print_frame.grid_forget()
-        self.test_frame.grid_forget()
+        if self.printer.homed==1:
+            #hide not needed btns
+            self.print_frame.grid_forget()
+            self.test_frame.grid_forget()
 
-        #make the send_g-code frame displa
-        self.para_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
-        self.substrat_frame.grid(row=4,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+            #make the send_g-code frame displa
+            self.para_frame.grid(row=3,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
+            self.substrat_frame.grid(row=4,column=1,rowspan=1, columnspan=1, padx=5, pady=5, sticky="n")
 
 
 

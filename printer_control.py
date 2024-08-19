@@ -105,10 +105,10 @@ class Printer():
         #substrat infos
         self.ydist=15 
         self.line=self.ydist 
-        self.sample_size_x=70
-        self.sample_size_y=120
+        self.sample_size_x=95
+        self.sample_size_y=95
         self.line_space=10
-        self.x_space_on_borders=5
+        self.x_space_on_borders=7
         self.sub=6 
 
 
@@ -119,8 +119,8 @@ class Printer():
         self.max_sub=50
         self.min_speed=500
         self.max_speed=12000
-        self.bed_max_y=250
-        self.bed_max_x=210
+        self.bed_max_y=210
+        self.bed_max_x=250
         self.z_offset=1.3
 
 
@@ -439,14 +439,14 @@ class Printer():
         """based on the current position of the nozzle choses with the methods prev_position and next_position print a line of the substrat informations
         """
         if (self.z>=self.min_z and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
-            self.z=self.z-self.z_offset#with the current system the nozle is higher than it should be 
+            z=self.z-self.z_offset#with the current system the nozle is higher than it should be 
 
-            gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
+            gcode_string="G1 Z" +str(10 + self.sub+z)+ "\n"
             gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders)+ " Y"+str(self.line) +" F1000.000"+ "\n"
-            gcode_string=gcode_string +"G1 Z"+str(self.z+self.sub) + "\n"
+            gcode_string=gcode_string +"G1 Z"+str(z+self.sub) + "\n"
             gcode_string=gcode_string +"G1 X "+str(self.bed_max_x-self.x_space_on_borders) + " E22.4 F"+str(self.speed)+ "\n"
             gcode_string=gcode_string +"G1 E-0.80000 F2100.00000 \n"
-            gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+self.z)+ "\n"
+            gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+z)+ "\n"
             gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x)+ " Y"+str(self.line)+" F5000.000"
 
             #the get_line_and_modify fct needs to read line by line the gcode for the for loop to work
@@ -462,16 +462,16 @@ class Printer():
         """
         ydist=self.ydist
         if (self.z>=self.min_z and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
-            self.z=self.z-self.z_offset#with the current system the nozle is 1mm higher 
+            z=self.z-self.z_offset#with the current system the nozle is 1mm higher 
             
 
-            gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
+            gcode_string="G1 Z" +str(10 + self.sub+z)+ "\n"
             for i in range(0,10):
                 gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders)+ " Y"+ str(ydist) + " F1000.000"+ "\n"
-                gcode_string=gcode_string +"G1 Z"+str(self.z+self.sub) + "\n"
+                gcode_string=gcode_string +"G1 Z"+str(z+self.sub) + "\n"
                 gcode_string=gcode_string +"G1 X "+str(self.bed_max_x-self.x_space_on_borders) + " E22.4 F"+str(self.speed)+ "\n"
                 gcode_string=gcode_string +"G1 E-0.80000 F2100.00000 \n"
-                gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+self.z)+ "\n"
+                gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+z)+ "\n"
                 if i%2==1:
                         ydist+=2.5 #there is 2.5 mm space between each different texture on the tested sample
                 ydist+=self.line_space
@@ -495,22 +495,22 @@ class Printer():
         cnt=int((ywidth/width_depose)/2)
 
         if (self.z>=self.min_z and self.z<20 and self.sub>=0 and self.sub<50):#last check if the value are allowed, but they should be checked in GUI already
-            self.z=self.z-self.z_offset#with the current system the nozle is 1.3mm higher 
+            z=self.z-self.z_offset#with the current system the nozle is 1.3mm higher 
             
             
-            gcode_string="G1 Z" +str(10 + self.sub+self.z)+ "\n"
+            gcode_string="G1 Z" +str(10 + self.sub+z)+ "\n"
             gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders)+ " Y"+ str(ydist) + " F1000.000"+ "\n"
-            gcode_string=gcode_string +"G1 Z"+str(self.z+self.sub) + "\n"
+            gcode_string=gcode_string +"G1 Z"+str(z+self.sub) + "\n"
             gcode_string=gcode_string +"G1 X "+str(self.bed_max_x-self.x_space_on_borders) + " E22.4 F"+str(self.speed)+ "\n"
             gcode_string=gcode_string +"G1 Y"+ str(ydist+ywidth) +"\n"
             gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders-width_depose)+ "\n"
             for i in range (1,cnt+1):
                 gcode_string=gcode_string +"G1 Y"+ str(ydist+i*width_depose)+"\n"
-                gcode_string=gcode_string +"G1 X "+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders + self.sample_size_x-i*width_depose)+"\n"
+                gcode_string=gcode_string +"G1 X "+str(self.bed_max_x-self.x_space_on_borders - i*width_depose)+"\n"
                 gcode_string=gcode_string +"G1 Y"+ str(ydist+ywidth-i*width_depose) +"\n"
                 gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x+self.x_space_on_borders+i*width_depose)+ "\n"
             gcode_string=gcode_string +"G1 E-0.80000 F2100.00000 \n"
-            gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+self.z)+ "\n"
+            gcode_string=gcode_string +"G1 Z" +str(10 + self.sub+z)+ "\n"
             gcode_string=gcode_string +"G1 X"+str(self.bed_max_x-self.sample_size_x-20)+ " Y"+ str(ydist) + " F1000.000"+ "\n" #move out so i can take a picture
             
             #the get_line_and_modify fct needs to read line by line the gcode for the for loop to work
@@ -528,11 +528,25 @@ class Printer():
         self.p.send_now("G1 Z10") 
         self.homed=1
 
-    def connect(self):
+    def connect(self, timeout=3):
         """connection to the printer and start listening
         """
+        connected=0
+        start_time = time.time()  # Record the start time
 
-        self.p = printcore('/dev/ttyACM0', 115200)
+        while time.time() - start_time < timeout:
+            try:
+                self.p = printcore('/dev/ttyACM0', 115200)
+                connected=1
+                break
+            except Exception as e:
+                print(f"Error connecting to printer: {e}")
+                return 0
+            
+        if not connected:
+            print("Failed to connect to printer within the timeout period.")
+            return 0
+        
         self.flag = 0
 
         #Set the response callback, listen to any message sent by the printer
@@ -544,4 +558,4 @@ class Printer():
             time.sleep(0.1)
         
         self.homing()
-        return 
+        return 1
