@@ -12,9 +12,8 @@ Features
 - EtherCAT control for three pneumatic valves
 - Easy testing on various substrates
 
-<!-- 
-Documentation regarding installation and usage of the project can be found in the Sphinx documentation. Please refer to the following path: `documentation/docs/build/html/index.html`.
--->
+ 
+Documentation regarding installation and usage of the project can be found in the Sphinx documentation provided in the documentation folder.
 
 
 Installation
