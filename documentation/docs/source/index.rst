@@ -5,9 +5,7 @@ Welcome to AMABA documentation!
 
 Check out the :doc:`usage` to get started.
 
-.. note::
 
-   This project is under active development.
 
 Contents
 --------
