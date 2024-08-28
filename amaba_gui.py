@@ -438,7 +438,7 @@ class amabaGUI:
             master = self.print_frame,
             width = 60,
             height=20,
-            placeholder_text="60",
+            placeholder_text="29",
         )
         self.wait_time_entry.grid(row = 1, column = 2, pady = 10, padx=2)
 
@@ -464,6 +464,7 @@ class amabaGUI:
         self.next_layer_btn.configure(state="disabled")
 
         #Button to stop an ongoing print without quitting the whole GUI
+        #This option is not working really well, if you stop the GUi is then lagging, you can uncomment bellow and try it out if needed
         self.stop_btn = customtkinter.CTkButton(
         master =self.print_frame,
         text="stop print",
@@ -471,8 +472,8 @@ class amabaGUI:
         width=80,
         height=30,
         )
-        self.stop_btn.grid(row=2,column=2, pady=10, padx=2)
-        self.stop_btn.configure(state="disabled")
+        #self.stop_btn.grid(row=2,column=2, pady=10, padx=2)
+        #self.stop_btn.configure(state="disabled")
 
         
         
@@ -865,8 +866,14 @@ class amabaGUI:
             self.on_ato.configure(text = "OFF")
             self.on_ato.deselect()
         
+        #after 30 minutes without interaction the printer turns the bed heating off blocking the programm, if you need to do longer drying time you should send regularly request to the printer to make sure it doesn't block
         if self.wait_time_entry.get()!='':
-            self.printer.wait_minutes=float(self.wait_time_entry.get())
+            if float(self.wait_time_entry.get())<=29:
+                self.printer.wait_minutes=float(self.wait_time_entry.get())
+            else:
+                self.wait_time_entry.delete(0, 10)#delete from index 0 to 10 
+                tk.messagebox.showinfo("send g-code", "Please choose a drying time lower than 29 minutes")
+                return 0
             
         self.window.update()
 

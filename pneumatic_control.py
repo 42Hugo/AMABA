@@ -167,6 +167,7 @@ class Pneumatic:
     def stop_print(self):
         """
         Turns off all solenoids and sends an update if the print process is stopped without terminating the C process.
+        the button was takken out of the GUi because the option is not working well, you can uncomment the button from amaba_gui.py to test it 
         """
         self.st_ato=0
         self.st_cart=0

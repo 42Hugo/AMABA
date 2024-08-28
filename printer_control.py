@@ -136,7 +136,7 @@ class Printer():
         self.pile_depose=[]
         self.pile_depose.append(0)
         self.thread_state=1
-        self.wait_minutes=60
+        self.wait_minutes=29
 
         self.t_gcode= threading.Thread(target=self.send_gcode_routine)
         self.t_gcode.start()
@@ -404,6 +404,7 @@ class Printer():
 
     def stop_print(self):
         """this method is called by the GUI when pressing stop print
+            the button was takken out of the GUi because the option is not working well, you can uncomment the button from amaba_gui.py to test it
         """
         self.stop=1
 
