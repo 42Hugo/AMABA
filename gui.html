@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GUI documentation &mdash; AMABA Doc 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="printer control documentation" href="printer.html" />
+    <link rel="prev" title="Usage" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AMABA Doc
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">GUI documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#initialisation">Initialisation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.__init__"><code class="docutils literal notranslate"><span class="pre">amabaGUI.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#gui-specific-methods">GUI specific Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.lock_gui"><code class="docutils literal notranslate"><span class="pre">amabaGUI.lock_gui()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.send_loop"><code class="docutils literal notranslate"><span class="pre">amabaGUI.send_loop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.gcodeF"><code class="docutils literal notranslate"><span class="pre">amabaGUI.gcodeF()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.test_depose"><code class="docutils literal notranslate"><span class="pre">amabaGUI.test_depose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.test_substrat"><code class="docutils literal notranslate"><span class="pre">amabaGUI.test_substrat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.onF"><code class="docutils literal notranslate"><span class="pre">amabaGUI.onF()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.sliderFc"><code class="docutils literal notranslate"><span class="pre">amabaGUI.sliderFc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.sliderFa"><code class="docutils literal notranslate"><span class="pre">amabaGUI.sliderFa()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.update"><code class="docutils literal notranslate"><span class="pre">amabaGUI.update()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#printer-interaction-methods">Printer interaction Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.print_next_layer"><code class="docutils literal notranslate"><span class="pre">amabaGUI.print_next_layer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.choose_substrat"><code class="docutils literal notranslate"><span class="pre">amabaGUI.choose_substrat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.choose_file"><code class="docutils literal notranslate"><span class="pre">amabaGUI.choose_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.test_sent_parameters"><code class="docutils literal notranslate"><span class="pre">amabaGUI.test_sent_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.run_test_sub"><code class="docutils literal notranslate"><span class="pre">amabaGUI.run_test_sub()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amaba_gui.amabaGUI.send_gcode"><code class="docutils literal notranslate"><span class="pre">amabaGUI.send_gcode()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="printer.html">printer control documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pneumatic.html">Pneumatic Control Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ethercat.html">Ethercat comunication documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AMABA Doc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">GUI documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/gui.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="gui-documentation">
+<h1>GUI documentation<a class="headerlink" href="#gui-documentation" title="Link to this heading"></a></h1>
+<p>The Graphical user interface is made with the library customtkinter (see documentation here: <a class="reference external" href="https://customtkinter.tomschimansky.com/">https://customtkinter.tomschimansky.com/</a>)
+The GUI will interact with both the printer object and the pneumatic object.</p>
+<section id="initialisation">
+<h2>Initialisation<a class="headerlink" href="#initialisation" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.__init__">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pneumatic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">printer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.__init__" title="Link to this definition"></a></dt>
+<dd><p>constructor method that also implements every GUI elements: buttons, frames, entry… the methods relative to the GUI are defined later in the code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pneumatic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><em>object</em></a>) – shared pneumatic object betwen the class GUI and printer to both update the pneumatic elements</p></li>
+<li><p><strong>printer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><em>object</em></a>) – object to interact with the printer variables and methods</p></li>
+<li><p><strong>raspberryPi</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – varible to specify is currently running on the raspberry pi with the toutch screen, if 1 the mouse won’t be visible and full screen will be on</p></li>
+<li><p><strong>filePath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – path to the g-code file to print</p></li>
+<li><p><strong>locked</strong> – state of the GUI, locked is equal to 1 when a print is ongoing to prevent specific buttons to be activated, defaults to 0</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="gui-specific-methods">
+<h2>GUI specific Methods<a class="headerlink" href="#gui-specific-methods" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.lock_gui">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">lock_gui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.lock_gui"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.lock_gui" title="Link to this definition"></a></dt>
+<dd><p>allows to lock or unlock the GUI to prevent certain actions by the user during a print</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.send_loop">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">send_loop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.send_loop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.send_loop" title="Link to this definition"></a></dt>
+<dd><p>Loop occuring every 500ms to update the GUI</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.gcodeF">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">gcodeF</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.gcodeF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.gcodeF" title="Link to this definition"></a></dt>
+<dd><p>opening the g-code frame with options to start g-code from a file. First connection with the printer is started and a homing is made, be careful homing can’t be cancelled</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.test_depose">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">test_depose</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.test_depose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.test_depose" title="Link to this definition"></a></dt>
+<dd><p>opening the test depose frame with options to draw lines without a file. First connection with the printer is started and a homing is made, be careful homing can’t be cancelled</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.test_substrat">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">test_substrat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.test_substrat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.test_substrat" title="Link to this definition"></a></dt>
+<dd><p>opening the g-test substrat frame with options to test a substrat with multiple line print without a file. First connection with the printer is started and a homing is made, be careful homing can’t be cancelled</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.onF">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">onF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">case</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.onF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.onF" title="Link to this definition"></a></dt>
+<dd><p>function to control the 3 solenoid valves from the GUI with switch</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>case</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – string to indicate which switch was activated, ‘p’ for pointeau (nozle), ‘c’ for cartouche (pressure on the fluid), ‘a’ for atomization (spaying pressure)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.sliderFc">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">sliderFc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.sliderFc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.sliderFc" title="Link to this definition"></a></dt>
+<dd><p>method to update the label of the cartouche based on the slider</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – value between 0 and 1.7 bar with 2 digits</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.sliderFa">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">sliderFa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.sliderFa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.sliderFa" title="Link to this definition"></a></dt>
+<dd><p>method to update the label of the atomization based on the slider</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – value between 0 and 2 bar with 2 digits</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.update">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.update" title="Link to this definition"></a></dt>
+<dd><p>update every label and slider according to the current values on the pneumati elements</p>
+</dd></dl>
+
+</section>
+<section id="printer-interaction-methods">
+<h2>Printer interaction Methods<a class="headerlink" href="#printer-interaction-methods" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.print_next_layer">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">print_next_layer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.print_next_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.print_next_layer" title="Link to this definition"></a></dt>
+<dd><p>change the state of go_next_layer to 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.choose_substrat">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">choose_substrat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sub</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.choose_substrat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.choose_substrat" title="Link to this definition"></a></dt>
+<dd><p>called by the option menu of the substrat, allows to use predefned substrat characteristics
+new substrat can be added with a new elif with the name as well as adding the new name to the option “substrat_options””</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sub</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – name of the substrat choosen by the user</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.choose_file">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">choose_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.choose_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.choose_file" title="Link to this definition"></a></dt>
+<dd><p>method to open a window that lets the user choose a file to print, currently crashed if used multiple times</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.test_sent_parameters">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">test_sent_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.test_sent_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.test_sent_parameters" title="Link to this definition"></a></dt>
+<dd><p>here check if parameters input by user are valide and disply when needed an error</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.run_test_sub">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">run_test_sub</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.run_test_sub"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.run_test_sub" title="Link to this definition"></a></dt>
+<dd><p>method to test the parameters before starting the method test_sample</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="amaba_gui.amabaGUI.send_gcode">
+<span class="sig-prename descclassname"><span class="pre">amabaGUI.</span></span><span class="sig-name descname"><span class="pre">send_gcode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/amaba_gui.html#amabaGUI.send_gcode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#amaba_gui.amabaGUI.send_gcode" title="Link to this definition"></a></dt>
+<dd><p>Method to start a g-code from a file</p>
+</dd></dl>
+
+<p>Disconnect Method
+.. automethod:: amaba_gui.amabaGUI.quit</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="printer.html" class="btn btn-neutral float-right" title="printer control documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, ICube.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

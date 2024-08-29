@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage &mdash; AMABA Doc 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="GUI documentation" href="gui.html" />
+    <link rel="prev" title="Welcome to AMABA documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AMABA Doc
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-gui">Using the GUI</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#connection-to-printer-and-pneumatic-control">Connection to printer and pneumatic control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-g-code">Test g-code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-print">Test print</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-substrat">Test substrat</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">GUI documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="printer.html">printer control documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pneumatic.html">Pneumatic Control Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ethercat.html">Ethercat comunication documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AMABA Doc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<section id="installation">
+<span id="id1"></span><h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>To use AMABA, first make sure etherlabmaster is supported, a first test was made with a raspberry Pi 2b  and it wasn’t successful.
+The installation was then made on the rapberry Pi 5 following the installation described here: <a class="reference external" href="https://embeng.dynv6.net/igh-ethercat-master-on-bbb-rpi">https://embeng.dynv6.net/igh-ethercat-master-on-bbb-rpi</a>
+There is no need for a real time kerenl and the standard raspbian OS 64-bit was enough.</p>
+<p>after installation the basic commands needed are :</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">sudo ethercatctl start</span>
+</pre></div>
+</div>
+<p>Then check if you can detect the slaves linked to the beckhoff coupler:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ethercat slaves</span>
+</pre></div>
+</div>
+<p>If yes then the installation worked and it’s enough for the rest of the projet, otherwise try installing again the etherlabmaster repositories or change the hardware.</p>
+<p>If it hasn’t been done already git clone the project:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://github.com/42Hugo/amaba.git</span>
+</pre></div>
+</div>
+<p>You can then change the file main.c located in the example user of the etherlabmaster project to the one provided in the amaba project.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cd etherlabmaster/examples/user</span>
+</pre></div>
+</div>
+<p>Then you can compile the new version of main.c, the makefile is already provided in the standard etherlabmaster project and should make a file called ec_user_example.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">sudo make</span>
+</pre></div>
+</div>
+<p>In pneumatic_control.py you have to change the directory of the ec_user_example file to the one you just compiled.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;/home/amaba/Desktop/dev_ws/ighEthercat/ethercat/examples/user/ec_user_example&#39;</span><span class="p">],</span>  <span class="n">stdin</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>depending on the usb port you’re using you might have to change the port in the printer_control.py file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">serial</span> <span class="o">=</span> <span class="n">serial</span><span class="o">.</span><span class="n">Serial</span><span class="p">(</span><span class="s1">&#39;/dev/ttyUSB0&#39;</span><span class="p">,</span> <span class="mi">115200</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you’re using a raspberry Pi you’ll have to create a python virtual environment to install the required packages(<a class="reference external" href="https://www.raspberrypi.com/documentation/computers/os.html#use-pip-with-virtual-environments">https://www.raspberrypi.com/documentation/computers/os.html#use-pip-with-virtual-environments</a>) and it is usually recommened:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">customtkinter</span> <span class="c1"># this is a custom tkinter version that is needed for the GUI</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">printrun</span> <span class="c1"># this is the package that will allow you to send gcode to the printer</span>
+</pre></div>
+</div>
+<p>and any other package that might be missing.</p>
+<p>start the GUI by running the main.py file, the right python virtual environment should be activated:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">python main.py</span>
+</pre></div>
+</div>
+<p>The run_amaba.sh file will start a defined virtual environment and run the main.py file to start the GUI.</p>
+</section>
+<section id="using-the-gui">
+<h2>Using the GUI<a class="headerlink" href="#using-the-gui" title="Link to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>if the Raspberry Pi crash and logs you out, the keyboard is set to qwerty when you need to write the password.</p>
+</div>
+<section id="connection-to-printer-and-pneumatic-control">
+<h3>Connection to printer and pneumatic control<a class="headerlink" href="#connection-to-printer-and-pneumatic-control" title="Link to this heading"></a></h3>
+<a class="reference internal image-reference" href="_images/gui_boot.png"><img alt="image of the GUI at boot" class="align-center" src="_images/gui_boot.png" style="width: 600px;" /></a>
+<ol class="arabic simple">
+<li><p>Click on any printer menu to connect to the printer and perform a homing sequence</p></li>
+<li><p>Test g-code to choose a g-code file and send it to the printer</p></li>
+<li><p>Test print to print one line at a time and tests various parameters</p></li>
+<li><p>Test substrat to print multiple lines on the whole substrat</p></li>
+<li><p>Homing to perform a homing sequence</p></li>
+<li><p>Quit to close the GUI</p></li>
+</ol>
+<p>The pneumatic controls on the left panel are opened at the start of the program. Each switch opens or closes a solenoid valve, and the pressure regulator is controlled by the slider.</p>
+</section>
+<section id="test-g-code">
+<h3>Test g-code<a class="headerlink" href="#test-g-code" title="Link to this heading"></a></h3>
+<a class="reference internal image-reference" href="_images/gui_gcode.png"><img alt="image of the gcode menu" class="align-center" src="_images/gui_gcode.png" style="width: 600px;" /></a>
+<ol class="arabic simple">
+<li><p>Choose a gcode file to print by clicking on the button.</p></li>
+<li><p>Set the drying time. The limit is set to 29 minutes because if there are no new instructions within 30 minutes, the printer will stop with the message “Heating disabled by safety timer.”</p></li>
+<li><p>Start the print with the set drying time and the chosen gcode file.</p></li>
+<li><p>Instead of setting the drying time, you can manually start the next layer by clicking on the button.</p></li>
+<li><p>Stop the print. It won’t be possible to resume after stopping.</p></li>
+</ol>
+</section>
+<section id="test-print">
+<h3>Test print<a class="headerlink" href="#test-print" title="Link to this heading"></a></h3>
+<a class="reference internal image-reference" href="_images/gui_test_print.png"><img alt="image of the test print menu" class="align-center" src="_images/gui_test_print.png" style="width: 600px;" /></a>
+<ol class="arabic simple">
+<li><p>Choose predefined substrat parameters.</p></li>
+<li><p>Specify the substrat parameters here if needed. The space entry is the distance between two printed lines, width is on the x-axis of the printer, and length is on the y-axis.</p></li>
+<li><p>Move the nozzle to the front from the distance specified in “space” (negative movement on the y-axis).</p></li>
+<li><p>Print a line at the current y position of the nozzle.</p></li>
+<li><p>Move the nozzle to the back from the distance specified in “space” (positive movement on the y-axis).</p></li>
+</ol>
+</section>
+<section id="test-substrat">
+<h3>Test substrat<a class="headerlink" href="#test-substrat" title="Link to this heading"></a></h3>
+<a class="reference internal image-reference" href="_images/gui_substrat.png"><img alt="image of the substrat menu" class="align-center" src="_images/gui_substrat.png" style="width: 600px;" /></a>
+<ol class="arabic simple">
+<li><p>Choose predefined substrat parameters.</p></li>
+<li><p>Specify the substrat parameters here if needed. The space entry is the distance between two printed lines, width is on the x-axis of the printer, and length is on the y-axis.</p></li>
+<li><p>Start printing lines throughout the substrat.</p></li>
+<li><p>Test a full rectangle print (not working well yet).</p></li>
+</ol>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to AMABA documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gui.html" class="btn btn-neutral float-right" title="GUI documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, ICube.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

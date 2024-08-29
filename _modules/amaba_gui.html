@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>amaba_gui &mdash; AMABA Doc 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=2709fde1"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            AMABA Doc
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">GUI documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../printer.html">printer control documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pneumatic.html">Pneumatic Control Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ethercat.html">Ethercat comunication documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AMABA Doc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">amaba_gui</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for amaba_gui</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+<span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="n">filedialog</span> <span class="k">as</span> <span class="n">fd</span>
+<span class="kn">import</span> <span class="nn">customtkinter</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">easygui</span> 
+
+<span class="c1">#for the printer</span>
+<span class="kn">from</span> <span class="nn">printer_control</span> <span class="kn">import</span> <span class="n">Printer</span>
+
+<span class="c1">#for the pneumatic control with ethercat</span>
+<span class="kn">from</span> <span class="nn">pneumatic_control</span> <span class="kn">import</span> <span class="n">Pneumatic</span>
+
+
+
+
+<span class="k">class</span> <span class="nc">amabaGUI</span><span class="p">:</span>
+
+<div class="viewcode-block" id="amabaGUI.__init__">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pneumatic</span><span class="p">,</span><span class="n">printer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;constructor method that also implements every GUI elements: buttons, frames, entry... the methods relative to the GUI are defined later in the code</span>
+
+<span class="sd">        :param pneumatic: shared pneumatic object betwen the class GUI and printer to both update the pneumatic elements</span>
+<span class="sd">        :type pneumatic: object</span>
+<span class="sd">        :param printer: object to interact with the printer variables and methods </span>
+<span class="sd">        :type printer: object</span>
+<span class="sd">        :param raspberryPi: varible to specify is currently running on the raspberry pi with the toutch screen, if 1 the mouse won&#39;t be visible and full screen will be on</span>
+<span class="sd">        :type raspberryPi: int</span>
+<span class="sd">        :param filePath: path to the g-code file to print</span>
+<span class="sd">        :type filePath: str</span>
+<span class="sd">        :param locked: state of the GUI, locked is equal to 1 when a print is ongoing to prevent specific buttons to be activated, defaults to 0</span>
+<span class="sd">        :type state: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">=</span><span class="n">pneumatic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">=</span><span class="n">printer</span>
+
+        <span class="c1">#if 1 the GUI will adapt to toutch screen and size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raspberryPi</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filePath</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locked</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="c1">#Main window</span>
+        <span class="n">customtkinter</span><span class="o">.</span><span class="n">set_appearance_mode</span><span class="p">(</span><span class="s2">&quot;light&quot;</span><span class="p">)</span>
+        <span class="n">customtkinter</span><span class="o">.</span><span class="n">set_default_color_theme</span><span class="p">(</span><span class="s2">&quot;dark-blue&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTk</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;AMABA&quot;</span><span class="p">)</span> 
+
+        
+        <span class="c1">#raspberry pi specifications</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">raspberryPi</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">attributes</span><span class="p">(</span><span class="s1">&#39;-fullscreen&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">cursor</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="s2">&quot;800x480&quot;</span><span class="p">)</span>
+        
+        <span class="c1">#a main frame to center properly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># Set column weight for proper alignment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">grid_columnconfigure</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Left column (control_frame)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">grid_columnconfigure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Middle column (title_frame)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">grid_columnconfigure</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Empty space column</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">grid_columnconfigure</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Right column (buttons)</span>
+
+        <span class="c1"># Set row weight for proper alignment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">grid_rowconfigure</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Top row (buttons)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">grid_rowconfigure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Space between buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">grid_rowconfigure</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Middle row (title_frame)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">grid_rowconfigure</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Bottom row (control_frame)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="o">.</span><span class="n">grid_rowconfigure</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># bottom stays empty</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">quit_Btn</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Quit&quot;</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quit</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quit_Btn</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span> <span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">homing_btn</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Homing&quot;</span><span class="p">,</span>
+        <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">homing</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">homing_btn</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span> <span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+
+
+        
+        <span class="c1">#defining in grid every seperate frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="p">,</span> <span class="n">fg_color</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+        
+
+        <span class="c1">#sub frame for each pressure control element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pointeau_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_frame</span><span class="p">,</span> <span class="n">fg_color</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pointeau_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">BOTTOM</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span> <span class="c1">#il va falloir l&#39;empècher de devenir trop petit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cartouche_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_frame</span><span class="p">,</span> <span class="n">fg_color</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cartouche_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">BOTTOM</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atom_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_frame</span><span class="p">,</span> <span class="n">fg_color</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atom_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">BOTTOM</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1">#sub frame for each mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="p">,</span> <span class="n">fg_color</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="p">,</span> <span class="n">fg_color</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">substrat_frame</span><span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="p">,</span> <span class="n">fg_color</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_frame</span><span class="p">,</span> <span class="n">fg_color</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">)</span>
+
+        
+
+        <span class="c1">#Top frame</span>
+
+        <span class="c1">#title</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;AMABA&quot;</span><span class="p">,</span>
+        <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Roboto&quot;</span><span class="p">,</span><span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;bold&quot;</span><span class="p">),</span>
+        <span class="n">text_color</span><span class="o">=</span><span class="s2">&quot;#3a7ebf&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">columnspan</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1">#button to activate &quot;test g-code&quot; the options to choose a g-code file and run it will be availabe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gcode</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">title_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Test g-code&quot;</span><span class="p">,</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gcodeF</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gcode</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#button to activate the options to test line by line with different parameters printing lines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">depose</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">title_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Test print&quot;</span><span class="p">,</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_depose</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">depose</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#button to activate the options to test multiple lines in a row on a single substrat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">substrat</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">title_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Test substrat&quot;</span><span class="p">,</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_substrat</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">substrat</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+
+
+
+
+        <span class="c1">#######frame pneumatic control#####</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_control</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Pneumatic&quot;</span><span class="p">,</span>
+        <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Roboto&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;bold&quot;</span><span class="p">),</span>
+        <span class="n">text_color</span><span class="o">=</span><span class="s2">&quot;#3a7ebf&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_control</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span> <span class="n">TOP</span><span class="p">)</span>
+
+        <span class="c1">####frame cartouche </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_cart</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cartouche_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Cartouche&quot;</span><span class="p">,</span>
+        <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Roboto&quot;</span><span class="p">,</span><span class="mi">20</span><span class="p">),</span>
+        <span class="n">text_color</span><span class="o">=</span><span class="s2">&quot;#3a7ebf&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_cart</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#Swith to turn on or off the pressure on the fluid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkSwitch</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cartouche_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;OFF&quot;</span><span class="p">,</span>
+        <span class="n">command</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">onF</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">),</span>
+        <span class="n">switch_width</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="n">switch_height</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#Label to display the current pressure on the fluid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_consi</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cartouche_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_cart</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span><span class="c1">#round the number to 2 digit</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_consi</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1">#slider to control the pressure on the fluid between zero and 1.7 bar, it should be maximum 2 bar but it only worked up to 1.7</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cart_bar</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkSlider</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cartouche_frame</span><span class="p">,</span>
+        <span class="n">from_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.7</span><span class="p">,</span> 
+        <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sliderFc</span><span class="p">,</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">number_of_steps</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cart_bar</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_cart</span><span class="p">)</span><span class="c1">#set the position of the slidder to the current pneumatic state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cart_bar</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+
+
+
+        <span class="c1">####frame atomization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_ato</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Atomisation&quot;</span><span class="p">,</span>
+        <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Roboto&quot;</span><span class="p">,</span><span class="mi">20</span><span class="p">),</span>
+        <span class="n">text_color</span><span class="o">=</span><span class="s2">&quot;#3a7ebf&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_ato</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#Swith to turn on or off the pressure to spray the fluid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkSwitch</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;OFF&quot;</span><span class="p">,</span>
+        <span class="n">command</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">onF</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">),</span>
+        <span class="n">switch_width</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="n">switch_height</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#display the current pressure of atomization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_consiA</span><span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_ato</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_consiA</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#slider to control the atomization pressure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ato_bar</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkSlider</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_frame</span><span class="p">,</span>
+        <span class="n">from_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sliderFa</span><span class="p">,</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">number_of_steps</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ato_bar</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_ato</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ato_bar</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+
+
+        <span class="c1">####frame pointeau</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_point</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pointeau_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Pointeau&quot;</span><span class="p">,</span>
+        <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Roboto&quot;</span><span class="p">,</span><span class="mi">20</span><span class="p">),</span>
+        <span class="n">text_color</span><span class="o">=</span><span class="s2">&quot;#3a7ebf&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_point</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#Swith to turn on or off the nozzle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkSwitch</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pointeau_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;OFF&quot;</span><span class="p">,</span>
+        <span class="n">command</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">onF</span><span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">),</span>
+        <span class="n">switch_width</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="n">switch_height</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+
+
+        <span class="c1">###para frame####</span>
+        
+        <span class="c1">#option menu to choose a predefined substrat size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">substrat_options</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkOptionMenu</span><span class="p">(</span>
+            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span> 
+            <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;95x95 PMMA&quot;</span><span class="p">,</span> <span class="s2">&quot;120x70 PMMA&quot;</span><span class="p">,</span> <span class="s2">&quot;60x60 PMMA&quot;</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span><span class="p">],</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">choose_substrat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">substrat_options</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;95x95 PMMA&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">substrat_options</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#label displaying width, refering to the size of the substrat being tested</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_width_label</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;width&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_width_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#entry to fill in the width of the substrat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkEntry</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">placeholder_text</span><span class="o">=</span><span class="mi">95</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#label displaying length, refering to the size of the substrat being tested</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_width_label</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;length&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_width_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#entry to fill in the length of the substrat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkEntry</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">placeholder_text</span><span class="o">=</span><span class="mi">95</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#label for the thickness</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Thickness&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#entry to fill in the thickness of the substrat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkEntry</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">placeholder_text</span><span class="o">=</span><span class="s2">&quot;6&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#label for the space beteen every line printed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_space_btn</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;space [mm]&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_space_btn</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#Entry for the space between every line printed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkEntry</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">placeholder_text</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#Label referig to the printing height</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_layer</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;layer height&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_layer</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#Entry to indicate the prining height </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_layer_v</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkEntry</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">placeholder_text</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_layer_v</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#Label to indicate the printing speed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speed</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Speed [mm/min]&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speed</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1">#Entry to indicate the printing speed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speed_v</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkEntry</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="p">,</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">placeholder_text</span><span class="o">=</span><span class="s2">&quot;500&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speed_v</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+
+
+        <span class="c1">#### test_frame ####</span>
+        <span class="c1">#This frame is opened by the button depose, it allows to move the printer head on the Y axes and to print a line with defined parameters</span>
+
+        <span class="c1">#Button to move from minus the line_space in y </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_line</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Previous Position&quot;</span><span class="p">,</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">prev_position</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_sent_parameters</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_line</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">#Buton to print 1 line with the defined parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_line</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Print Line&quot;</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">print_line</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_sent_parameters</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_line</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">#Button to move from plus the line_space in y </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_line</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Next Position&quot;</span><span class="p">,</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">next_position</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_sent_parameters</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_line</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+
+
+
+        <span class="c1">#####print_frame########</span>
+
+        <span class="c1">#Button to open a window allowing to choose a file and save the path to this file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filebtn</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Choose file&quot;</span><span class="p">,</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">choose_file</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filebtn</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">#Label for the drying time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_time_l</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Drying time</span><span class="se">\n</span><span class="s2">between layers (minutes)&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_time_l</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="n">pady</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">#Entry for the drying time in minutes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_time_entry</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkEntry</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="p">,</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">placeholder_text</span><span class="o">=</span><span class="s2">&quot;60&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_time_entry</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">#Button to start the g-code define with the filebtn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_gcode</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;start print&quot;</span><span class="p">,</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_gcode</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_gcode</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">#Button to skip the drying time and start the next layer, defaults to disabled outside of ongoing print</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_layer_btn</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;next layer&quot;</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">print_next_layer</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_layer_btn</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_layer_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+
+        <span class="c1">#Button to stop an ongoing print without quitting the whole GUI</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_btn</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+        <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;stop print&quot;</span><span class="p">,</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">stop_print</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">stop_print</span><span class="p">()],</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_btn</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+
+        
+        
+        <span class="c1">### substrat frame ####</span>
+
+        <span class="c1">#Button to print multiple lines in a row on the substrat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_sub_btn</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">substrat_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Test sandard sample&quot;</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run_test_sub</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_sub_btn</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">#Button to print a circle (tested but doesn&#39;t work really well)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_full_rect_btn</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">substrat_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Test full rectangle&quot;</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">test__full_rectangle</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_full_rect_btn</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">column</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pady</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        
+        <span class="c1">#we start a loop to regularly send info to the ethercat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">send_loop</span><span class="p">)</span> 
+        
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span></div>
+
+    
+
+<div class="viewcode-block" id="amabaGUI.print_next_layer">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.print_next_layer">[docs]</a>
+    <span class="k">def</span> <span class="nf">print_next_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;change the state of go_next_layer to 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">go_next_layer</span><span class="o">=</span><span class="mi">1</span></div>
+
+    
+    <span class="k">def</span> <span class="nf">quit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop pneumatic and printer comunicaqtion and close the window</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">stop_c_program</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">kill_thread</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">homed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span> 
+    
+<div class="viewcode-block" id="amabaGUI.choose_substrat">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.choose_substrat">[docs]</a>
+    <span class="k">def</span> <span class="nf">choose_substrat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sub</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;called by the option menu of the substrat, allows to use predefned substrat characteristics</span>
+<span class="sd">        new substrat can be added with a new elif with the name as well as adding the new name to the option &quot;substrat_options&quot;&quot; </span>
+
+<span class="sd">        :param sub: name of the substrat choosen by the user</span>
+<span class="sd">        :type sub: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sub</span><span class="o">==</span><span class="s2">&quot;95x95 PMMA&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_x</span><span class="o">=</span><span class="mi">95</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_y</span><span class="o">=</span><span class="mi">95</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">line_space</span><span class="o">=</span><span class="mi">5</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sub</span><span class="o">=</span><span class="mi">6</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">95</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">95</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sub</span><span class="o">==</span><span class="s2">&quot;120x70 PMMA&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_x</span><span class="o">=</span><span class="mi">70</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_y</span><span class="o">=</span><span class="mi">120</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">line_space</span><span class="o">=</span><span class="mi">10</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sub</span><span class="o">=</span><span class="mi">5</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">70</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sub</span><span class="o">==</span><span class="s2">&quot;60x60 PMMA&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_x</span><span class="o">=</span><span class="mi">60</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_y</span><span class="o">=</span><span class="mi">60</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">line_space</span><span class="o">=</span><span class="mi">5</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sub</span><span class="o">=</span><span class="mi">6</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">placeholder_text</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_x</span><span class="o">=</span><span class="mi">120</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_y</span><span class="o">=</span><span class="mi">120</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">line_space</span><span class="o">=</span><span class="mi">5</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sub</span><span class="o">=</span><span class="mi">6</span></div>
+
+
+<div class="viewcode-block" id="amabaGUI.lock_gui">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.lock_gui">[docs]</a>
+    <span class="k">def</span> <span class="nf">lock_gui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;allows to lock or unlock the GUI to prevent certain actions by the user during a print</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;lock/unlock GUI&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">on_going_print</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_gcode</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p_line</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_line</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw_line</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_sub_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">homing_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">next_layer_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">locked</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_gcode</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p_line</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_line</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw_line</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_sub_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">homing_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">next_layer_btn</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">locked</span><span class="o">=</span><span class="mi">0</span></div>
+
+
+
+
+<div class="viewcode-block" id="amabaGUI.send_loop">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.send_loop">[docs]</a>
+    <span class="k">def</span> <span class="nf">send_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loop occuring every 500ms to update the GUI </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#could be improved by sending only if changed happened </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">sendToClient</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">locked</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">on_going_print</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lock_gui</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">send_loop</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="amabaGUI.choose_file">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.choose_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">choose_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;method to open a window that lets the user choose a file to print, currently crashed if used multiple times</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filePath</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filePath</span>  <span class="o">=</span> <span class="n">easygui</span><span class="o">.</span><span class="n">fileopenbox</span><span class="p">()</span><span class="c1">#the fd.askopenfile() was making the GUI crash, this one works better</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        #let&#39;s try a second method from stackoverflow:</span>
+<span class="sd">        root = Tk(); root.attributes(&#39;-alpha&#39;,0.01)</span>
+<span class="sd">        root.attributes(&#39;-topmost&#39;,True)</span>
+<span class="sd">        root.tk.eval(f&#39;tk::PlaceWindow {root._w} center&#39;)</span>
+<span class="sd">        root.withdraw()</span>
+<span class="sd">        self.filePath = &quot;&quot;</span>
+<span class="sd">        self.filePath  = fd.askopenfilename()</span>
+<span class="sd">        root.destroy()&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="amabaGUI.test_sent_parameters">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.test_sent_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_sent_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;here check if parameters input by user are valide and disply when needed an error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_layer_v</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">!=</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_layer_v</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&gt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">min_z</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_layer_v</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">max_z</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">z</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_layer_v</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;send g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Please choose a Z higher than 0.1mm&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">!=</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&gt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">min_sub</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">max_sub</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sub</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_substrat_v</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;send g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Please choose a substrat thicker than 0mm&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">speed_v</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">!=</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">speed_v</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&gt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">min_speed</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">speed_v</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">max_speed</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">speed</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">speed_v</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;send g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Please choose a speed higher than 500 and lower than 12000&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">!=</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">bed_max_x</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_x</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_width</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;send g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Please choose a x width higher than 0 and lower than 210&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">!=</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">bed_max_y</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">sample_size_y</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_width</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;send g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Please choose a y length higher than 0 and lower than 250&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">!=</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">get</span><span class="p">())</span><span class="o">&lt;=</span><span class="mi">100</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">line_space</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_space</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;send g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Please choose a line space higher than 0 and lower than 100&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+
+
+<div class="viewcode-block" id="amabaGUI.run_test_sub">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.run_test_sub">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_test_sub</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;method to test the parameters before starting the method test_sample</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_sent_parameters</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">test_sample</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="amabaGUI.send_gcode">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.send_gcode">[docs]</a>
+    <span class="k">def</span> <span class="nf">send_gcode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Method to start a g-code from a file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filePath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.gcode&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">multilayer_print</span><span class="o">=</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">load_gcode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filePath</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">get_line_and_modify</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;send g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Please choose a g-code file&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="amabaGUI.gcodeF">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.gcodeF">[docs]</a>
+    <span class="k">def</span> <span class="nf">gcodeF</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;opening the g-code frame with options to start g-code from a file. First connection with the printer is started and a homing is made, be careful homing can&#39;t be cancelled</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">connect_and_calibrate</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;Test g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Printer is not connected&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="c1">#hide not needed btns</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">substrat_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+
+            <span class="c1">#make the send_g-code frame display</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">homed</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;Test g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Calibration will start, make sure only the Prusa Bed is mounted on the printer&quot;</span><span class="p">)</span> 
+            <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">connect_and_calibrate</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">homed</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1">#hide not needed btns</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">substrat_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+
+            <span class="c1">#make the send_g-code frame display</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="amabaGUI.test_depose">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.test_depose">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_depose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;opening the test depose frame with options to draw lines without a file. First connection with the printer is started and a homing is made, be careful homing can&#39;t be cancelled</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">connect_and_calibrate</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;Test g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Printer is not connected&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="c1">#hide not needed btns</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">substrat_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+
+            <span class="c1">#make the send_g-code frame displa</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">homed</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;Test g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Calibration will start, make sure only the Prusa Bed is mounted on the printer&quot;</span><span class="p">)</span> 
+            <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">connect_and_calibrate</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">homed</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1">#hide not needed btns</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">substrat_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+
+            <span class="c1">#make the send_g-code frame displa</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="amabaGUI.test_substrat">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.test_substrat">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_substrat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;opening the g-test substrat frame with options to test a substrat with multiple line print without a file. First connection with the printer is started and a homing is made, be careful homing can&#39;t be cancelled</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">connect_and_calibrate</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;printer not co&quot;</span><span class="p">)</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;Test g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Printer is not connected&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="c1">#hide not needed btns</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+
+            <span class="c1">#make the send_g-code frame displa</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">substrat_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">homed</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s2">&quot;Test g-code&quot;</span><span class="p">,</span> <span class="s2">&quot;Calibration will start, make sure only the Prusa Bed is mounted on the printer&quot;</span><span class="p">)</span> 
+            <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">connect_and_calibrate</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">homed</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1">#hide not needed btns</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_frame</span><span class="o">.</span><span class="n">grid_forget</span><span class="p">()</span>
+
+            <span class="c1">#make the send_g-code frame displa</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">para_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">substrat_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="amabaGUI.onF">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.onF">[docs]</a>
+    <span class="k">def</span> <span class="nf">onF</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">case</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;function to control the 3 solenoid valves from the GUI with switch</span>
+
+<span class="sd">        :param case: string to indicate which switch was activated, &#39;p&#39; for pointeau (nozle), &#39;c&#39; for cartouche (pressure on the fluid), &#39;a&#39; for atomization (spaying pressure)</span>
+<span class="sd">        :type case: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">case</span> <span class="o">==</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_point</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_point</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_point</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">case</span><span class="o">==</span><span class="s2">&quot;c&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_cart</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_cart</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_cart</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">case</span><span class="o">==</span><span class="s2">&quot;a&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_ato</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_ato</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_ato</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="amabaGUI.sliderFc">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.sliderFc">[docs]</a>
+    <span class="k">def</span> <span class="nf">sliderFc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;method to update the label of the cartouche based on the slider</span>
+
+<span class="sd">        :param value: value between 0 and 1.7 bar with 2 digits</span>
+<span class="sd">        :type value: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_cart</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_consi</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_cart</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="amabaGUI.sliderFa">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.sliderFa">[docs]</a>
+    <span class="k">def</span> <span class="nf">sliderFa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;method to update the label of the atomization based on the slider</span>
+
+<span class="sd">        :param value: value between 0 and 2 bar with 2 digits</span>
+<span class="sd">        :type value: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_ato</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_consiA</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_ato</span><span class="p">)</span></div>
+
+  
+    
+<div class="viewcode-block" id="amabaGUI.update">
+<a class="viewcode-back" href="../gui.html#amaba_gui.amabaGUI.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;update every label and slider according to the current values on the pneumati elements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#update the labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_consi</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_cart</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_consiA</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_ato</span><span class="p">)</span>
+
+        <span class="c1">#update the slides</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cart_bar</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_cart</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ato_bar</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">c_ato</span><span class="p">)</span>
+
+        <span class="c1">#update the on/off</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_point</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_point</span><span class="o">.</span><span class="n">deselect</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_cart</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_cart</span><span class="o">.</span><span class="n">deselect</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pneumatic</span><span class="o">.</span><span class="n">st_ato</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_ato</span><span class="o">.</span><span class="n">deselect</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_time_entry</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">!=</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="o">.</span><span class="n">wait_minutes</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait_time_entry</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, ICube.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pneumatic Control Documentation &mdash; AMABA Doc 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Ethercat comunication documentation" href="ethercat.html" />
+    <link rel="prev" title="printer control documentation" href="printer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AMABA Doc
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">GUI documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="printer.html">printer control documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pneumatic Control Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#initialization">Initialization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pneumatic_control.Pneumatic.__init__"><code class="docutils literal notranslate"><span class="pre">Pneumatic.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#connection-methods">Connection Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pneumatic_control.Pneumatic.start_connection"><code class="docutils literal notranslate"><span class="pre">Pneumatic.start_connection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#disconnect-methods">Disconnect Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pneumatic_control.Pneumatic.stop_c_program"><code class="docutils literal notranslate"><span class="pre">Pneumatic.stop_c_program()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#send-methods">Send Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pneumatic_control.Pneumatic.sendToClient"><code class="docutils literal notranslate"><span class="pre">Pneumatic.sendToClient()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#stop-methods">Stop Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pneumatic_control.Pneumatic.stop_print"><code class="docutils literal notranslate"><span class="pre">Pneumatic.stop_print()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ethercat.html">Ethercat comunication documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AMABA Doc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Pneumatic Control Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pneumatic.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pneumatic-control-documentation">
+<h1>Pneumatic Control Documentation<a class="headerlink" href="#pneumatic-control-documentation" title="Link to this heading"></a></h1>
+<section id="initialization">
+<h2>Initialization<a class="headerlink" href="#initialization" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="pneumatic_control.Pneumatic.__init__">
+<span class="sig-prename descclassname"><span class="pre">Pneumatic.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pneumatic_control.html#Pneumatic.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pneumatic_control.Pneumatic.__init__" title="Link to this definition"></a></dt>
+<dd><p>The constructor method,  comunication with EtherCAT is also started</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is no control command for (c_point) as it maintains a fixed pressure between 4.7 and 7 bar to open the nozzle</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>st_cart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – set to 1 to open, 0 to close the solenoid valve on fluid, defaults to 0</p></li>
+<li><p><strong>st_ato</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – set to 1 to open, 0 to close the solenoid valve on atomisation (to spay the liquid), defaults to 0</p></li>
+<li><p><strong>st_point</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – set to 1 to open, 0 to close the solenoid valve on nozle (if closed atomization still works but no liquid is spayed), defaults to 0</p></li>
+<li><p><strong>c_cart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – pressure applied to the fluid between 0 and 2 bar (1 decimal possible), defaults to 0</p></li>
+<li><p><strong>c_ato</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – pressure applied to the atomisation between 0 and 2 bar (1 decimal possible), defaults to 0</p></li>
+<li><p><strong>connected</strong> – indicates whether communication with the subprocess is established (<code class="docutils literal notranslate"><span class="pre">self.connected</span> <span class="pre">=</span> <span class="pre">2</span></code> when running), defaults to 0</p></li>
+<li><p><strong>filePath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – path to the gcode file, defaults to ‘’</p></li>
+<li><p><strong>host</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Hostname for the socket connection, defaults to ‘localhost’</p></li>
+<li><p><strong>port</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – Port number for the socket connection, defaults to 12345</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="connection-methods">
+<h2>Connection Methods<a class="headerlink" href="#connection-methods" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="pneumatic_control.Pneumatic.start_connection">
+<span class="sig-prename descclassname"><span class="pre">Pneumatic.</span></span><span class="sig-name descname"><span class="pre">start_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pneumatic_control.html#Pneumatic.start_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pneumatic_control.Pneumatic.start_connection" title="Link to this definition"></a></dt>
+<dd><p>start the c process and start socket comunication
+connected will be incremented</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The path to the <cite>ec_user_example</cite> executable might need to be adjusted. It is generated by <cite>main.c</cite> and handles communication using the EtherCAT protocol.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="disconnect-methods">
+<h2>Disconnect Methods<a class="headerlink" href="#disconnect-methods" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="pneumatic_control.Pneumatic.stop_c_program">
+<span class="sig-prename descclassname"><span class="pre">Pneumatic.</span></span><span class="sig-name descname"><span class="pre">stop_c_program</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pneumatic_control.html#Pneumatic.stop_c_program"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pneumatic_control.Pneumatic.stop_c_program" title="Link to this definition"></a></dt>
+<dd><p>Stops both the C process and the socket communication.</p>
+</dd></dl>
+
+</section>
+<section id="send-methods">
+<h2>Send Methods<a class="headerlink" href="#send-methods" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="pneumatic_control.Pneumatic.sendToClient">
+<span class="sig-prename descclassname"><span class="pre">Pneumatic.</span></span><span class="sig-name descname"><span class="pre">sendToClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pneumatic_control.html#Pneumatic.sendToClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pneumatic_control.Pneumatic.sendToClient" title="Link to this definition"></a></dt>
+<dd><p>Gathers all pressure-related information and sends it to the C process in the appropriate string format.</p>
+<p>The <cite>state</cite> argument is always set to 1, except when terminating the process.</p>
+<dl class="simple">
+<dt>The string format is as follows:</dt><dd><ul class="simple">
+<li><p>The first bit indicates the state (1 or 0). A state of 0 will automatically terminate the loop.</p></li>
+<li><p>Bits 2, 3, and 4 are for the solenoid valve: 0 for closed, 1 for open.</p></li>
+<li><p>Bits 5, 6, 7, and 8 represent the pressure values (between 0 and 2) for atomization and fluid, without a comma.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The string should look like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mes</span> <span class="o">=</span> <span class="s1">&#39;[state][on/off atomization][on/off fluid][on/off nozzle][pressure atomization between 0 and 20][pressure fluid between 0 and 20]&#39;</span>
+</pre></div>
+</div>
+<p>For example, consider the following string:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mes</span> <span class="o">=</span> <span class="s1">&#39;10001103&#39;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>The state is on (1).</p></li>
+<li><p>All three solenoids are closed (0 for atomization, fluid, and nozzle).</p></li>
+<li><p>1.1 bar for atomization.</p></li>
+<li><p>0.3 bar for fluid.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – State of the process, 1 for running, 0 for stopping</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="stop-methods">
+<h2>Stop Methods<a class="headerlink" href="#stop-methods" title="Link to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="pneumatic_control.Pneumatic.stop_print">
+<span class="sig-prename descclassname"><span class="pre">Pneumatic.</span></span><span class="sig-name descname"><span class="pre">stop_print</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pneumatic_control.html#Pneumatic.stop_print"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pneumatic_control.Pneumatic.stop_print" title="Link to this definition"></a></dt>
+<dd><p>Turns off all solenoids and sends an update if the print process is stopped without terminating the C process.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="printer.html" class="btn btn-neutral float-left" title="printer control documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ethercat.html" class="btn btn-neutral float-right" title="Ethercat comunication documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, ICube.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

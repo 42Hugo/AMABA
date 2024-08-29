@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pneumatic_control &mdash; AMABA Doc 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=2709fde1"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            AMABA Doc
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">GUI documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../printer.html">printer control documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pneumatic.html">Pneumatic Control Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ethercat.html">Ethercat comunication documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AMABA Doc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pneumatic_control</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pneumatic_control</h1><div class="highlight"><pre>
+<span></span><span class="c1">#for the socket com with C</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">select</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">os</span> 
+
+<span class="k">class</span> <span class="nc">Pneumatic</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This Python class is designed to start a C subprocess that handles EtherCAT communication using the EtherLab master. </span>
+<span class="sd">    Strings are transmitted through sockets from this module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Pneumatic.__init__">
+<a class="viewcode-back" href="../pneumatic.html#pneumatic_control.Pneumatic.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The constructor method,  comunication with EtherCAT is also started</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            There is no control command for (c_point) as it maintains a fixed pressure between 4.7 and 7 bar to open the nozzle</span>
+<span class="sd">    </span>
+
+<span class="sd">        :param st_cart: set to 1 to open, 0 to close the solenoid valve on fluid, defaults to 0</span>
+<span class="sd">        :type st_cart: int</span>
+<span class="sd">        :param st_ato: set to 1 to open, 0 to close the solenoid valve on atomisation (to spay the liquid), defaults to 0</span>
+<span class="sd">        :type st_ato: int</span>
+<span class="sd">        :param st_point: set to 1 to open, 0 to close the solenoid valve on nozle (if closed atomization still works but no liquid is spayed), defaults to 0</span>
+<span class="sd">        :type st_point: int</span>
+<span class="sd">        :param c_cart: pressure applied to the fluid between 0 and 2 bar (1 decimal possible), defaults to 0</span>
+<span class="sd">        :type c_cart: float</span>
+<span class="sd">        :param c_ato: pressure applied to the atomisation between 0 and 2 bar (1 decimal possible), defaults to 0</span>
+<span class="sd">        :type c_ato: float</span>
+<span class="sd">        :param connected: indicates whether communication with the subprocess is established (``self.connected = 2`` when running), defaults to 0</span>
+<span class="sd">        :type connectd: int</span>
+<span class="sd">        :param filePath: path to the gcode file, defaults to &#39;&#39;</span>
+<span class="sd">        :type filePath: str</span>
+<span class="sd">        :param host: Hostname for the socket connection, defaults to &#39;localhost&#39;</span>
+<span class="sd">        :type host: str</span>
+<span class="sd">        :param port: Port number for the socket connection, defaults to 12345</span>
+<span class="sd">        :type port: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#st 0 ou 1 pour controller les vannes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">st_cart</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">st_ato</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">st_point</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="c1">#c pour controler la valeur envoyé à la vanne en bar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_cart</span><span class="o">=</span><span class="mi">0</span> <span class="c1">#entre 0 et 2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_ato</span><span class="o">=</span><span class="mi">0</span> <span class="c1">#entre 0 et 2</span>
+        <span class="c1">#no need of c_point as it is a constant pressure to open or close</span>
+
+        <span class="c1">#the g-code file path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filePath</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+    
+        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="s1">&#39;localhost&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="mi">12345</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connected</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="c1">#start c process and socket communication</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_connection</span><span class="p">()</span></div>
+
+    
+    
+<div class="viewcode-block" id="Pneumatic.start_connection">
+<a class="viewcode-back" href="../pneumatic.html#pneumatic_control.Pneumatic.start_connection">[docs]</a>
+    <span class="k">def</span> <span class="nf">start_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>                
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        start the c process and start socket comunication</span>
+<span class="sd">        connected will be incremented </span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The path to the `ec_user_example` executable might need to be adjusted. It is generated by `main.c` and handles communication using the EtherCAT protocol.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;sudo ethercatctl start&#39;</span><span class="p">)</span><span class="c1">#start the ethercat master</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;when tryin to start the ethercat master&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1">#launch the c process</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;/home/amaba/Desktop/dev_ws/ighEthercat/ethercat/examples/user/ec_user_example&#39;</span><span class="p">],</span>  <span class="n">stdin</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="c1">#wait here to let the c process initiate</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connected</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;An error occured when trying to start c_process&quot;</span><span class="p">)</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1">#laucn socket</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+            <span class="c1"># Connect to the server</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connected</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;An error occured when trying to start the socket&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Pneumatic.stop_c_program">
+<a class="viewcode-back" href="../pneumatic.html#pneumatic_control.Pneumatic.stop_c_program">[docs]</a>
+    <span class="k">def</span> <span class="nf">stop_c_program</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stops both the C process and the socket communication.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sendToClient</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1">#turn everything off before switch off</span>
+        <span class="c1"># Terminate the C program</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;sudo ethercatctl stop&#39;</span><span class="p">)</span><span class="c1">#stop the ethercat master</span></div>
+
+
+<div class="viewcode-block" id="Pneumatic.sendToClient">
+<a class="viewcode-back" href="../pneumatic.html#pneumatic_control.Pneumatic.sendToClient">[docs]</a>
+    <span class="k">def</span> <span class="nf">sendToClient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>       
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gathers all pressure-related information and sends it to the C process in the appropriate string format.</span>
+
+<span class="sd">        The `state` argument is always set to 1, except when terminating the process. </span>
+<span class="sd">        </span>
+<span class="sd">        The string format is as follows:</span>
+<span class="sd">         - The first bit indicates the state (1 or 0). A state of 0 will automatically terminate the loop.</span>
+<span class="sd">         - Bits 2, 3, and 4 are for the solenoid valve: 0 for closed, 1 for open.</span>
+<span class="sd">         - Bits 5, 6, 7, and 8 represent the pressure values (between 0 and 2) for atomization and fluid, without a comma.</span>
+
+<span class="sd">        The string should look like this:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            mes = &#39;[state][on/off atomization][on/off fluid][on/off nozzle][pressure atomization between 0 and 20][pressure fluid between 0 and 20]&#39;</span>
+
+<span class="sd">        For example, consider the following string:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            mes = &#39;10001103&#39;</span>
+
+<span class="sd">        - The state is on (1).</span>
+<span class="sd">        - All three solenoids are closed (0 for atomization, fluid, and nozzle).</span>
+<span class="sd">        - 1.1 bar for atomization.</span>
+<span class="sd">        - 0.3 bar for fluid.</span>
+<span class="sd">        </span>
+<span class="sd">        :param state: State of the process, 1 for running, 0 for stopping</span>
+<span class="sd">        :type state: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">presAto</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_ato</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presAto</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">):</span>
+            <span class="n">presAtostr</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presAto</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presAto</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+            <span class="n">presAtostr</span><span class="o">=</span><span class="s2">&quot;00&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">presAtostr</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presAto</span><span class="p">)</span>
+        <span class="n">presCart</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_cart</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">presCart</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">):</span>
+            <span class="n">presCartstr</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">presCart</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">presCart</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+            <span class="n">presCart</span><span class="o">=</span><span class="s2">&quot;00&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">presCartstr</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">presCart</span><span class="p">)</span>
+        <span class="n">mes</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="o">+</span>  <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">st_ato</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">st_cart</span><span class="p">)</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">st_point</span><span class="p">)</span>  <span class="o">+</span><span class="n">presAtostr</span> <span class="o">+</span> <span class="n">presCartstr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_with_socket</span><span class="p">(</span><span class="n">mes</span><span class="p">)</span>
+        
+        <span class="k">return</span> </div>
+
+
+    <span class="k">def</span> <span class="nf">send_with_socket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mes</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a message through the socket.</span>
+
+<span class="sd">        :param mes: Message to be sent</span>
+<span class="sd">        :type mes: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">mes</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="k">return</span> 
+
+
+<div class="viewcode-block" id="Pneumatic.stop_print">
+<a class="viewcode-back" href="../pneumatic.html#pneumatic_control.Pneumatic.stop_print">[docs]</a>
+    <span class="k">def</span> <span class="nf">stop_print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Turns off all solenoids and sends an update if the print process is stopped without terminating the C process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">st_ato</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">st_cart</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">st_point</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sendToClient</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, ICube.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ethercat comunication documentation &mdash; AMABA Doc 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Pneumatic Control Documentation" href="pneumatic.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AMABA Doc
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">GUI documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="printer.html">printer control documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pneumatic.html">Pneumatic Control Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Ethercat comunication documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv413decodeMessagePKc"><code class="docutils literal notranslate"><span class="pre">decodeMessage()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv415set_nonblockingi"><code class="docutils literal notranslate"><span class="pre">set_nonblocking()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412start_socketv"><code class="docutils literal notranslate"><span class="pre">start_socket()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412close_socketv"><code class="docutils literal notranslate"><span class="pre">close_socket()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv416listen_to_socketv"><code class="docutils literal notranslate"><span class="pre">listen_to_socket()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv419check_domain1_statev"><code class="docutils literal notranslate"><span class="pre">check_domain1_state()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv418check_master_statev"><code class="docutils literal notranslate"><span class="pre">check_master_state()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv425check_slave_config_statesv"><code class="docutils literal notranslate"><span class="pre">check_slave_config_states()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv411cyclic_taskv"><code class="docutils literal notranslate"><span class="pre">cyclic_task()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv414stack_prefaultv"><code class="docutils literal notranslate"><span class="pre">stack_prefault()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv44mainv"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv49server_fd"><code class="docutils literal notranslate"><span class="pre">server_fd</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv49client_fd"><code class="docutils literal notranslate"><span class="pre">client_fd</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv47address"><code class="docutils literal notranslate"><span class="pre">address</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv47addrlen"><code class="docutils literal notranslate"><span class="pre">addrlen</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv46buffer"><code class="docutils literal notranslate"><span class="pre">buffer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv46master"><code class="docutils literal notranslate"><span class="pre">master</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412master_state"><code class="docutils literal notranslate"><span class="pre">master_state</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv47domain1"><code class="docutils literal notranslate"><span class="pre">domain1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv413domain1_state"><code class="docutils literal notranslate"><span class="pre">domain1_state</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv49sc_ana_in"><code class="docutils literal notranslate"><span class="pre">sc_ana_in</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv415sc_ana_in_state"><code class="docutils literal notranslate"><span class="pre">sc_ana_in_state</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv410domain1_pd"><code class="docutils literal notranslate"><span class="pre">domain1_pd</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv411off_ana_in1"><code class="docutils literal notranslate"><span class="pre">off_ana_in1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv411off_ana_in2"><code class="docutils literal notranslate"><span class="pre">off_ana_in2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412off_ana_out1"><code class="docutils literal notranslate"><span class="pre">off_ana_out1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412off_ana_out2"><code class="docutils literal notranslate"><span class="pre">off_ana_out2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412off_dig_out1"><code class="docutils literal notranslate"><span class="pre">off_dig_out1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412domain1_regs"><code class="docutils literal notranslate"><span class="pre">domain1_regs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv47counter"><code class="docutils literal notranslate"><span class="pre">counter</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv45blink"><code class="docutils literal notranslate"><span class="pre">blink</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv44dig1"><code class="docutils literal notranslate"><span class="pre">dig1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv44dig2"><code class="docutils literal notranslate"><span class="pre">dig2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv44dig3"><code class="docutils literal notranslate"><span class="pre">dig3</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv44ana1"><code class="docutils literal notranslate"><span class="pre">ana1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv44ana2"><code class="docutils literal notranslate"><span class="pre">ana2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv45state"><code class="docutils literal notranslate"><span class="pre">state</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv44loop"><code class="docutils literal notranslate"><span class="pre">loop</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv47message"><code class="docutils literal notranslate"><span class="pre">message</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv419slave_3_pdo_entries"><code class="docutils literal notranslate"><span class="pre">slave_3_pdo_entries</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412slave_3_pdos"><code class="docutils literal notranslate"><span class="pre">slave_3_pdos</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv413slave_3_syncs"><code class="docutils literal notranslate"><span class="pre">slave_3_syncs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv419slave_2_pdo_entries"><code class="docutils literal notranslate"><span class="pre">slave_2_pdo_entries</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412slave_2_pdos"><code class="docutils literal notranslate"><span class="pre">slave_2_pdos</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv413slave_2_syncs"><code class="docutils literal notranslate"><span class="pre">slave_2_syncs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv419slave_1_pdo_entries"><code class="docutils literal notranslate"><span class="pre">slave_1_pdo_entries</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv412slave_1_pdos"><code class="docutils literal notranslate"><span class="pre">slave_1_pdos</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#_CPPv413slave_1_syncs"><code class="docutils literal notranslate"><span class="pre">slave_1_syncs</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AMABA Doc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Ethercat comunication documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ethercat.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ethercat-comunication-documentation">
+<h1>Ethercat comunication documentation<a class="headerlink" href="#ethercat-comunication-documentation" title="Link to this heading"></a></h1>
+<p>The ethercat comunication is handled thanks to etherlabmaster and the exmple code provided by the etherlabmaster exemple “user” was used as starting point for the comunication.
+The system is not running on a real time kernel.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the PERIOD_NS (the task period) is to low the VPPM (Proportional Pressure Regulators) will face pressure drop, it works at 1ms</p>
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-defines">Defines</p>
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.PERIOD_NS">
+<span class="target" id="main_8c_1ab495f8313ac709722de636c17e8a7381"></span><span class="sig-name descname"><span class="n"><span class="pre">PERIOD_NS</span></span></span> <span class="pre">(1000000)</span><a class="headerlink" href="#c.PERIOD_NS" title="Link to this definition"></a><br /></dt>
+<dd><p>Task period in ns. </p>
+</dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.MAX_SAFE_STACK">
+<span class="target" id="main_8c_1a879e10cc3ad4709ecca7d0b56c93c1f0"></span><span class="sig-name descname"><span class="n"><span class="pre">MAX_SAFE_STACK</span></span></span> <span class="pre">(8</span> <span class="pre">*</span> <span class="pre">1024)</span><a class="headerlink" href="#c.MAX_SAFE_STACK" title="Link to this definition"></a><br /></dt>
+<dd><p>The maximum stack size which is guranteed safe to access without faulting </p>
+</dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.NSEC_PER_SEC">
+<span class="target" id="main_8c_1a0501e82515b2bdf36453c4cc80f5e0cc"></span><span class="sig-name descname"><span class="n"><span class="pre">NSEC_PER_SEC</span></span></span> <span class="pre">(1000000000)</span><a class="headerlink" href="#c.NSEC_PER_SEC" title="Link to this definition"></a><br /></dt>
+<dd><p>predefined in the etherlabmaster </p>
+</dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.FREQUENCY">
+<span class="target" id="main_8c_1a84142cd3e3bf14c4ecd4b6707a808c39"></span><span class="sig-name descname"><span class="n"><span class="pre">FREQUENCY</span></span></span> <span class="pre">(NSEC_PER_SEC</span> <span class="pre">/</span> <span class="pre">PERIOD_NS)</span><a class="headerlink" href="#c.FREQUENCY" title="Link to this definition"></a><br /></dt>
+<dd><p>frequenct, predefined in the etherlabmaster </p>
+</dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.PORT">
+<span class="target" id="main_8c_1a614217d263be1fb1a5f76e2ff7be19a2"></span><span class="sig-name descname"><span class="n"><span class="pre">PORT</span></span></span> <span class="pre">12345</span><a class="headerlink" href="#c.PORT" title="Link to this definition"></a><br /></dt>
+<dd><p>socket var to comunicate with pneumatic_control.py </p>
+</dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.BUFFER_SIZE">
+<span class="target" id="main_8c_1a6b20d41d6252e9871430c242cb1a56e7"></span><span class="sig-name descname"><span class="n"><span class="pre">BUFFER_SIZE</span></span></span> <span class="pre">1024</span><a class="headerlink" href="#c.BUFFER_SIZE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.BusCouplerPos">
+<span class="target" id="main_8c_1ae3d33e662cb3c0b29417feacef09d410"></span><span class="sig-name descname"><span class="n"><span class="pre">BusCouplerPos</span></span></span> <span class="pre">0,</span> <span class="pre">0</span><a class="headerlink" href="#c.BusCouplerPos" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.DigOutSlavePos">
+<span class="target" id="main_8c_1aaebe9df0a73a67784d15515ce9efd704"></span><span class="sig-name descname"><span class="n"><span class="pre">DigOutSlavePos</span></span></span> <span class="pre">0,</span> <span class="pre">1</span><a class="headerlink" href="#c.DigOutSlavePos" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.AnaOutSlavePos">
+<span class="target" id="main_8c_1aef7856fd4bb83562fbee505413f4924b"></span><span class="sig-name descname"><span class="n"><span class="pre">AnaOutSlavePos</span></span></span> <span class="pre">0,</span> <span class="pre">2</span><a class="headerlink" href="#c.AnaOutSlavePos" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.AnaInSlavePos">
+<span class="target" id="main_8c_1aa5b685a0e8abaaeab58d042d15277b4a"></span><span class="sig-name descname"><span class="n"><span class="pre">AnaInSlavePos</span></span></span> <span class="pre">0,</span> <span class="pre">3</span><a class="headerlink" href="#c.AnaInSlavePos" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.Beckhoff_EK1100">
+<span class="target" id="main_8c_1a55b0969981b7e06481f0931da2d6ba0a"></span><span class="sig-name descname"><span class="n"><span class="pre">Beckhoff_EK1100</span></span></span> <span class="pre">0x00000002,</span> <span class="pre">0x044c2c52</span><a class="headerlink" href="#c.Beckhoff_EK1100" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.Beckhoff_EL2024">
+<span class="target" id="main_8c_1a09001e87b475f1f826b3538050e9e5fa"></span><span class="sig-name descname"><span class="n"><span class="pre">Beckhoff_EL2024</span></span></span> <span class="pre">0x00000002,</span> <span class="pre">0x07e83052</span><a class="headerlink" href="#c.Beckhoff_EL2024" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.Beckhoff_EL4104">
+<span class="target" id="main_8c_1aee5d4f6b46a33bcc38d0b2e63fe7d17d"></span><span class="sig-name descname"><span class="n"><span class="pre">Beckhoff_EL4104</span></span></span> <span class="pre">0x00000002,</span> <span class="pre">0x10083052</span><a class="headerlink" href="#c.Beckhoff_EL4104" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.Beckhoff_EL3164">
+<span class="target" id="main_8c_1a28e6db2e1542197811385e140ec598d4"></span><span class="sig-name descname"><span class="n"><span class="pre">Beckhoff_EL3164</span></span></span> <span class="pre">0x00000002,</span> <span class="pre">0x0c5c3052</span><a class="headerlink" href="#c.Beckhoff_EL3164" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv413decodeMessagePKc">
+<span id="_CPPv313decodeMessagePKc"></span><span id="_CPPv213decodeMessagePKc"></span><span id="decodeMessage__cCP"></span><span class="target" id="main_8c_1a0eaa201daf4e2c7a8087a4639620028a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">decodeMessage</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">mes</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413decodeMessagePKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Decodes the message sent by pneumatic_control.py and updates the global variables accordingly. </p>
+<p>The maximum value that can be set to the analog output is 32767. Values above this will be set to 0 for the VPPM 0-2 bar. (The 0-6 bar wasn’t tested at maximum, but it is most likely the same).</p>
+<p><strong>VPPM 0-6 bar (with an output of 0-2 bar needed):</strong><ul class="simple">
+<li><p>The pressure output is linear above 0.1 bar.</p></li>
+<li><p>Set ana1 to 2100 to get 0.1 bar.</p></li>
+<li><p>Set ana1 to 12287 to get 2 bar.</p></li>
+<li><p>Formula: <code class="docutils literal notranslate"><span class="pre">ana1</span> <span class="pre">=</span> <span class="pre">A</span> <span class="pre">*</span> <span class="pre">ana1</span> <span class="pre">+</span> <span class="pre">B</span></code><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">=</span> <span class="pre">(outmax</span> <span class="pre">-</span> <span class="pre">outmin)</span> <span class="pre">/</span> <span class="pre">(inmax</span> <span class="pre">-</span> <span class="pre">inmin)</span> <span class="pre">=</span> <span class="pre">(12287</span> <span class="pre">-</span> <span class="pre">2100)</span> <span class="pre">/</span> <span class="pre">(2</span> <span class="pre">-</span> <span class="pre">0.1)</span> <span class="pre">=</span> <span class="pre">5361.58</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">outmin</span> <span class="pre">-</span> <span class="pre">A</span> <span class="pre">*</span> <span class="pre">inmin</span> <span class="pre">=</span> <span class="pre">2100</span> <span class="pre">-</span> <span class="pre">5361.58</span> <span class="pre">*</span> <span class="pre">0.1</span> <span class="pre">=</span> <span class="pre">1536.84</span></code></p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<p><strong>VPPM 0-2 bar (with an output of 0-2 bar needed):</strong><ul class="simple">
+<li><p>The pressure output is linear above 0.1 bar.</p></li>
+<li><p>Set ana2 to 6553 to get 0.1 bar.</p></li>
+<li><p>Set ana2 to 37685 to get 2 bar (unfortunately, the maximum value is 32767, so the maximum is now 1.7 bar).</p></li>
+<li><p>Formula: <code class="docutils literal notranslate"><span class="pre">ana2</span> <span class="pre">=</span> <span class="pre">A</span> <span class="pre">*</span> <span class="pre">ana2</span> <span class="pre">+</span> <span class="pre">B</span></code><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">=</span> <span class="pre">(outmax</span> <span class="pre">-</span> <span class="pre">outmin)</span> <span class="pre">/</span> <span class="pre">(inmax</span> <span class="pre">-</span> <span class="pre">inmin)</span> <span class="pre">=</span> <span class="pre">(37685</span> <span class="pre">-</span> <span class="pre">6553)</span> <span class="pre">/</span> <span class="pre">(1.7</span> <span class="pre">-</span> <span class="pre">0.1)</span> <span class="pre">=</span> <span class="pre">16383.75</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">=</span> <span class="pre">outmin</span> <span class="pre">-</span> <span class="pre">A</span> <span class="pre">*</span> <span class="pre">inmin</span> <span class="pre">=</span> <span class="pre">6553</span> <span class="pre">-</span> <span class="pre">16383.75</span> <span class="pre">*</span> <span class="pre">0.1</span> <span class="pre">=</span> <span class="pre">4914.625</span></code></p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mes</strong> – The message sent by pneumatic_control.py as a string. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv415set_nonblockingi">
+<span id="_CPPv315set_nonblockingi"></span><span id="_CPPv215set_nonblockingi"></span><span id="set_nonblocking__i"></span><span class="target" id="main_8c_1afad9eb7393cb103c5d29a738485b82b0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_nonblocking</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">fd</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv415set_nonblockingi" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the nonblocking object. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fd</strong> – The file descriptor to set to nonblocking </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv412start_socketv">
+<span id="_CPPv312start_socketv"></span><span id="_CPPv212start_socketv"></span><span id="start_socket"></span><span class="target" id="main_8c_1a0c79d602b634887e72469a1e97caf122"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">start_socket</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412start_socketv" title="Link to this definition"></a><br /></dt>
+<dd><p>start the comunicaion with pneumatic_control.py using a socket and tries to connect </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv412close_socketv">
+<span id="_CPPv312close_socketv"></span><span id="_CPPv212close_socketv"></span><span id="close_socket"></span><span class="target" id="main_8c_1a5444cae5002b72381f50851c5a971369"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">close_socket</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412close_socketv" title="Link to this definition"></a><br /></dt>
+<dd><p>close the socket before exiting the program </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv416listen_to_socketv">
+<span id="_CPPv316listen_to_socketv"></span><span id="_CPPv216listen_to_socketv"></span><span id="listen_to_socket"></span><span class="target" id="main_8c_1a0b3b006a9de0dace8aa7561d1de3e54b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">listen_to_socket</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416listen_to_socketv" title="Link to this definition"></a><br /></dt>
+<dd><p>listen to the socket and read the message sent by pneumatic_control.py and if connection wasn’t established tries to connect </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv419check_domain1_statev">
+<span id="_CPPv319check_domain1_statev"></span><span id="_CPPv219check_domain1_statev"></span><span id="check_domain1_state__void"></span><span class="target" id="main_8c_1a54789270dccb8eccbd08aec04200a446"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">check_domain1_state</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419check_domain1_statev" title="Link to this definition"></a><br /></dt>
+<dd><p>standard cyclic task to check the state of the domain and the master </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv418check_master_statev">
+<span id="_CPPv318check_master_statev"></span><span id="_CPPv218check_master_statev"></span><span id="check_master_state__void"></span><span class="target" id="main_8c_1a17736068bd6664404ad732ff7809a79a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">check_master_state</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv418check_master_statev" title="Link to this definition"></a><br /></dt>
+<dd><p>standard cyclic task to check the state of the master </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv425check_slave_config_statesv">
+<span id="_CPPv325check_slave_config_statesv"></span><span id="_CPPv225check_slave_config_statesv"></span><span id="check_slave_config_states__void"></span><span class="target" id="main_8c_1ab5271f1067ae861b511a11d1163c83dd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">check_slave_config_states</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425check_slave_config_statesv" title="Link to this definition"></a><br /></dt>
+<dd><p>standard cyclic task to check the state of the slave configuration </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv411cyclic_taskv">
+<span id="_CPPv311cyclic_taskv"></span><span id="_CPPv211cyclic_taskv"></span><span id="cyclic_task"></span><span class="target" id="main_8c_1acd382bcdfc8b54fa10de12eb43a84d3c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cyclic_task</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411cyclic_taskv" title="Link to this definition"></a><br /></dt>
+<dd><p>cyclic task occuring at the defined frequency and updating the pneumatic elements based on the mes received from the pneumatic_control.py </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv414stack_prefaultv">
+<span id="_CPPv314stack_prefaultv"></span><span id="_CPPv214stack_prefaultv"></span><span id="stack_prefault__void"></span><span class="target" id="main_8c_1a120e0042554a3750927df8a43d283feb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">stack_prefault</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414stack_prefaultv" title="Link to this definition"></a><br /></dt>
+<dd><p>standard in the user example </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv44mainv">
+<span id="_CPPv34mainv"></span><span id="_CPPv24mainv"></span><span id="main"></span><span class="target" id="main_8c_1ae66f6b31b5ad750f1fe042a706a4e3d4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">main</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44mainv" title="Link to this definition"></a><br /></dt>
+<dd><p>main function to start the cyclic task and the socket </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv49server_fd">
+<span id="_CPPv39server_fd"></span><span id="_CPPv29server_fd"></span><span id="server_fd__i"></span><span class="target" id="main_8c_1a6cf4711aa7ecd548b03b6e50d44b5aa6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">server_fd</span></span></span><a class="headerlink" href="#_CPPv49server_fd" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv49client_fd">
+<span id="_CPPv39client_fd"></span><span id="_CPPv29client_fd"></span><span id="client_fd__i"></span><span class="target" id="main_8c_1ae4f1c36e2c0e305e54a0de1d107bf9ef"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">client_fd</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv49client_fd" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv47address">
+<span id="_CPPv37address"></span><span id="_CPPv27address"></span><span id="address__sockaddr_in"></span><span class="target" id="main_8c_1a367491879e8ce396250c54956bc6ed5e"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">sockaddr_in</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">address</span></span></span><a class="headerlink" href="#_CPPv47address" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv47addrlen">
+<span id="_CPPv37addrlen"></span><span id="_CPPv27addrlen"></span><span id="addrlen__i"></span><span class="target" id="main_8c_1a831741adfdfd6d071a62a5bc72ea1aeb"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">addrlen</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">sizeof</span></span><span class="p"><span class="pre">(</span></span><a class="reference internal" href="#_CPPv47address" title="address"><span class="n"><span class="pre">address</span></span></a><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#_CPPv47addrlen" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv46buffer">
+<span id="_CPPv36buffer"></span><span id="_CPPv26buffer"></span><span id="buffer__cA"></span><span class="target" id="main_8c_1af00b615ca097c43dbb02ae3a00ea3a62"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">buffer</span></span></span><span class="p"><span class="pre">[</span></span><span class="n"><span class="pre">BUFFER_SIZE</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv46buffer" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv46master">
+<span id="_CPPv36master"></span><span id="_CPPv26master"></span><span id="master__ec_master_tP"></span><span class="target" id="main_8c_1ab4ddbacd5d1165db726810362f1c671b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_master_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">master</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><a class="headerlink" href="#_CPPv46master" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv412master_state">
+<span id="_CPPv312master_state"></span><span id="_CPPv212master_state"></span><span id="master_state__ec_master_state_t"></span><span class="target" id="main_8c_1aa38d242655399730d9773a2ecc883384"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_master_state_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">master_state</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv412master_state" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv47domain1">
+<span id="_CPPv37domain1"></span><span id="_CPPv27domain1"></span><span id="domain1__ec_domain_tP"></span><span class="target" id="main_8c_1a3acdce57798d159f2dc3c42f0c62de43"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_domain_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">domain1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><a class="headerlink" href="#_CPPv47domain1" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv413domain1_state">
+<span id="_CPPv313domain1_state"></span><span id="_CPPv213domain1_state"></span><span id="domain1_state__ec_domain_state_t"></span><span class="target" id="main_8c_1a4042cc006af2c75afc711ed0b4c5b957"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_domain_state_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">domain1_state</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv413domain1_state" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv49sc_ana_in">
+<span id="_CPPv39sc_ana_in"></span><span id="_CPPv29sc_ana_in"></span><span id="sc_ana_in__ec_slave_config_tP"></span><span class="target" id="main_8c_1a3bf952b8eb22b5d2316c915dc3ff3d42"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_slave_config_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">sc_ana_in</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><a class="headerlink" href="#_CPPv49sc_ana_in" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv415sc_ana_in_state">
+<span id="_CPPv315sc_ana_in_state"></span><span id="_CPPv215sc_ana_in_state"></span><span id="sc_ana_in_state__ec_slave_config_state_t"></span><span class="target" id="main_8c_1ab2a8eafd484ae9e0ccc7bea00d585053"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_slave_config_state_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sc_ana_in_state</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv415sc_ana_in_state" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv410domain1_pd">
+<span id="_CPPv310domain1_pd"></span><span id="_CPPv210domain1_pd"></span><span id="domain1_pd__uint8_tP"></span><span class="target" id="main_8c_1a2089f25b7071e667a9b6d9e5651824df"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">domain1_pd</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><a class="headerlink" href="#_CPPv410domain1_pd" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv411off_ana_in1">
+<span id="_CPPv311off_ana_in1"></span><span id="_CPPv211off_ana_in1"></span><span id="off_ana_in1__unsigned-i"></span><span class="target" id="main_8c_1a80f63bd83b9184600c99ccc04c95d9c0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">off_ana_in1</span></span></span><a class="headerlink" href="#_CPPv411off_ana_in1" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv411off_ana_in2">
+<span id="_CPPv311off_ana_in2"></span><span id="_CPPv211off_ana_in2"></span><span id="off_ana_in2__unsigned-i"></span><span class="target" id="main_8c_1ad1d1d3994a7e278db62bd31a87a12b74"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">off_ana_in2</span></span></span><a class="headerlink" href="#_CPPv411off_ana_in2" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv412off_ana_out1">
+<span id="_CPPv312off_ana_out1"></span><span id="_CPPv212off_ana_out1"></span><span id="off_ana_out1__unsigned-i"></span><span class="target" id="main_8c_1aa7dba8693fdd2b56c0c3b70a4a94a131"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">off_ana_out1</span></span></span><a class="headerlink" href="#_CPPv412off_ana_out1" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv412off_ana_out2">
+<span id="_CPPv312off_ana_out2"></span><span id="_CPPv212off_ana_out2"></span><span id="off_ana_out2__unsigned-i"></span><span class="target" id="main_8c_1a41c67a543287047a3627aac708995789"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">off_ana_out2</span></span></span><a class="headerlink" href="#_CPPv412off_ana_out2" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv412off_dig_out1">
+<span id="_CPPv312off_dig_out1"></span><span id="_CPPv212off_dig_out1"></span><span id="off_dig_out1__unsigned-i"></span><span class="target" id="main_8c_1ac0ba79ab8279b134de5653a1dad83dd6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">off_dig_out1</span></span></span><a class="headerlink" href="#_CPPv412off_dig_out1" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv412domain1_regs">
+<span id="_CPPv312domain1_regs"></span><span id="_CPPv212domain1_regs"></span><span id="domain1_regs__ec_pdo_entry_reg_tCA"></span><span class="target" id="main_8c_1a3cbec18dc8215461b4a6ef72b8930410"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ec_pdo_entry_reg_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">domain1_regs</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">{</span></span><span class="n"><span class="pre">AnaInSlavePos</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">Beckhoff_EL3164</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x6000</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x11</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv411off_ana_in1" title="off_ana_in1"><span class="n"><span class="pre">off_ana_in1</span></span></a><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="n"><span class="pre">AnaInSlavePos</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">Beckhoff_EL3164</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x6010</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x11</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv411off_ana_in2" title="off_ana_in2"><span class="n"><span class="pre">off_ana_in2</span></span></a><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="n"><span class="pre">AnaOutSlavePos</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">Beckhoff_EL4104</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x7000</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv412off_ana_out1" title="off_ana_out1"><span class="n"><span class="pre">off_ana_out1</span></span></a><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="n"><span class="pre">AnaOutSlavePos</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">Beckhoff_EL4104</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x7010</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv412off_ana_out2" title="off_ana_out2"><span class="n"><span class="pre">off_ana_out2</span></span></a><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="n"><span class="pre">DigOutSlavePos</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">Beckhoff_EL2024</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x7000</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv412off_dig_out1" title="off_dig_out1"><span class="n"><span class="pre">off_dig_out1</span></span></a><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv412domain1_regs" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv47counter">
+<span id="_CPPv37counter"></span><span id="_CPPv27counter"></span><span id="counter__unsigned-i"></span><span class="target" id="main_8c_1ac6c464b0a83a481fee26175f6229c5cc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">counter</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv47counter" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv45blink">
+<span id="_CPPv35blink"></span><span id="_CPPv25blink"></span><span id="blink__unsigned-i"></span><span class="target" id="main_8c_1a5a6d1eef775b071cbbdf69eb35f8072d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">blink</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv45blink" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv44dig1">
+<span id="_CPPv34dig1"></span><span id="_CPPv24dig1"></span><span id="dig1__unsigned-i"></span><span class="target" id="main_8c_1ac7542f1b8fef417f5bf90c19c9bc128a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dig1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv44dig1" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv44dig2">
+<span id="_CPPv34dig2"></span><span id="_CPPv24dig2"></span><span id="dig2__unsigned-i"></span><span class="target" id="main_8c_1a0c0abe34331c226d8894c70c1c03248f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dig2</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv44dig2" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv44dig3">
+<span id="_CPPv34dig3"></span><span id="_CPPv24dig3"></span><span id="dig3__unsigned-i"></span><span class="target" id="main_8c_1af1408a0a4e97a21a516eb0b267e302df"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dig3</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv44dig3" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv44ana1">
+<span id="_CPPv34ana1"></span><span id="_CPPv24ana1"></span><span id="ana1__float"></span><span class="target" id="main_8c_1a546d0f0e30fc92d87df5a7dbc3978a2c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ana1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.0f</span></span><a class="headerlink" href="#_CPPv44ana1" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv44ana2">
+<span id="_CPPv34ana2"></span><span id="_CPPv24ana2"></span><span id="ana2__float"></span><span class="target" id="main_8c_1a1baa763260c620a4d4cab10d30d271f6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ana2</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.0f</span></span><a class="headerlink" href="#_CPPv44ana2" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv45state">
+<span id="_CPPv35state"></span><span id="_CPPv25state"></span><span id="state__unsigned-i"></span><span class="target" id="main_8c_1a3cc20059a5b78ca1c8660e2c8134079c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">state</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv45state" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv44loop">
+<span id="_CPPv34loop"></span><span id="_CPPv24loop"></span><span id="loop__unsigned-i"></span><span class="target" id="main_8c_1ac4948d3f194cb02e216c672e03cf9eb6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">loop</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv44loop" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv47message">
+<span id="_CPPv37message"></span><span id="_CPPv27message"></span><span id="message__cA"></span><span class="target" id="main_8c_1ae1b4a2a0bd124fb2ee430c8ba7e3a071"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">message</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="s"><span class="pre">&quot;10000000&quot;</span></span><a class="headerlink" href="#_CPPv47message" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv419slave_3_pdo_entries">
+<span id="_CPPv319slave_3_pdo_entries"></span><span id="_CPPv219slave_3_pdo_entries"></span><span id="slave_3_pdo_entries__ec_pdo_entry_info_tA"></span><span class="target" id="main_8c_1af98b5471765d5376fa34772af61e5308"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_pdo_entry_info_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slave_3_pdo_entries</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#_CPPv419slave_3_pdo_entries" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv412slave_3_pdos">
+<span id="_CPPv312slave_3_pdos"></span><span id="_CPPv212slave_3_pdos"></span><span id="slave_3_pdos__ec_pdo_info_tA"></span><span class="target" id="main_8c_1a2f5f114ea13f6bed3473f2d549819bab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_pdo_info_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slave_3_pdos</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1a00</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">11</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_3_pdo_entries" title="slave_3_pdo_entries"><span class="n"><span class="pre">slave_3_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1a02</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">11</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_3_pdo_entries" title="slave_3_pdo_entries"><span class="n"><span class="pre">slave_3_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">11</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1a04</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">11</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_3_pdo_entries" title="slave_3_pdo_entries"><span class="n"><span class="pre">slave_3_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">22</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1a06</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">11</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_3_pdo_entries" title="slave_3_pdo_entries"><span class="n"><span class="pre">slave_3_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">33</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv412slave_3_pdos" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv413slave_3_syncs">
+<span id="_CPPv313slave_3_syncs"></span><span id="_CPPv213slave_3_syncs"></span><span id="slave_3_syncs__ec_sync_info_tA"></span><span class="target" id="main_8c_1a3ee5b2fbb1c1cb78418fbbaa5f19a931"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_sync_info_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slave_3_syncs</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_DIR_OUTPUT</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_WD_DISABLE</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_DIR_INPUT</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_WD_DISABLE</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_DIR_OUTPUT</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_WD_DISABLE</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_DIR_INPUT</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv412slave_3_pdos" title="slave_3_pdos"><span class="n"><span class="pre">slave_3_pdos</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_WD_DISABLE</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0xff</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv413slave_3_syncs" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv419slave_2_pdo_entries">
+<span id="_CPPv319slave_2_pdo_entries"></span><span id="_CPPv219slave_2_pdo_entries"></span><span id="slave_2_pdo_entries__ec_pdo_entry_info_tA"></span><span class="target" id="main_8c_1a89d440d9cfec16b0dd4746a9218ad8ce"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_pdo_entry_info_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slave_2_pdo_entries</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x7000</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">16</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x7010</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">16</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x7020</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">16</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x7030</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">16</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv419slave_2_pdo_entries" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv412slave_2_pdos">
+<span id="_CPPv312slave_2_pdos"></span><span id="_CPPv212slave_2_pdos"></span><span id="slave_2_pdos__ec_pdo_info_tA"></span><span class="target" id="main_8c_1a8860ceb7345027e1f2ab4cd3a07f7fcd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_pdo_info_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slave_2_pdos</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1600</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_2_pdo_entries" title="slave_2_pdo_entries"><span class="n"><span class="pre">slave_2_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1601</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_2_pdo_entries" title="slave_2_pdo_entries"><span class="n"><span class="pre">slave_2_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1602</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_2_pdo_entries" title="slave_2_pdo_entries"><span class="n"><span class="pre">slave_2_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1603</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_2_pdo_entries" title="slave_2_pdo_entries"><span class="n"><span class="pre">slave_2_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv412slave_2_pdos" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv413slave_2_syncs">
+<span id="_CPPv313slave_2_syncs"></span><span id="_CPPv213slave_2_syncs"></span><span id="slave_2_syncs__ec_sync_info_tA"></span><span class="target" id="main_8c_1acf785e4a3304e64ddc19e11ab1e59131"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_sync_info_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slave_2_syncs</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_DIR_OUTPUT</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_WD_DISABLE</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_DIR_INPUT</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_WD_DISABLE</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_DIR_OUTPUT</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv412slave_2_pdos" title="slave_2_pdos"><span class="n"><span class="pre">slave_2_pdos</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_WD_DISABLE</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_DIR_INPUT</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">NULL</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_WD_DISABLE</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0xff</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv413slave_2_syncs" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv419slave_1_pdo_entries">
+<span id="_CPPv319slave_1_pdo_entries"></span><span id="_CPPv219slave_1_pdo_entries"></span><span id="slave_1_pdo_entries__ec_pdo_entry_info_tA"></span><span class="target" id="main_8c_1a9a73bf36dd24b0bd5d08b65298530083"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_pdo_entry_info_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slave_1_pdo_entries</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x7000</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x7010</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x7020</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x7030</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">0x01</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv419slave_1_pdo_entries" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv412slave_1_pdos">
+<span id="_CPPv312slave_1_pdos"></span><span id="_CPPv212slave_1_pdos"></span><span id="slave_1_pdos__ec_pdo_info_tA"></span><span class="target" id="main_8c_1a33e4003dc528a7eee5b165ceb506409e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_pdo_info_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slave_1_pdos</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1600</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_1_pdo_entries" title="slave_1_pdo_entries"><span class="n"><span class="pre">slave_1_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1601</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_1_pdo_entries" title="slave_1_pdo_entries"><span class="n"><span class="pre">slave_1_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1602</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_1_pdo_entries" title="slave_1_pdo_entries"><span class="n"><span class="pre">slave_1_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0x1603</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv419slave_1_pdo_entries" title="slave_1_pdo_entries"><span class="n"><span class="pre">slave_1_pdo_entries</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv412slave_1_pdos" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv413slave_1_syncs">
+<span id="_CPPv313slave_1_syncs"></span><span id="_CPPv213slave_1_syncs"></span><span id="slave_1_syncs__ec_sync_info_tA"></span><span class="target" id="main_8c_1a4a650ff6f50561b4c07dbd7b36a66307"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ec_sync_info_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slave_1_syncs</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_DIR_OUTPUT</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv412slave_1_pdos" title="slave_1_pdos"><span class="n"><span class="pre">slave_1_pdos</span></span></a><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">EC_WD_ENABLE</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0xff</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv413slave_1_syncs" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pneumatic.html" class="btn btn-neutral float-left" title="Pneumatic Control Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, ICube.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
