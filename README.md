@@ -13,7 +13,7 @@ Features
 - Easy testing on various substrates
 
  
-Documentation regarding installation and usage of the project can be found in the Sphinx documentation provided in the documentation folder.
+Documentation regarding installation and usage of the project can be found here: https://42hugo.github.io/amaba
 
 
 Installation
